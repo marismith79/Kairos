@@ -1,0 +1,8 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/860d2e52-2c51-406a-8d50-6022bd6238c4/resourceGroups/PrevilonHealth-eus/providers/Microsoft.Web/sites/previlonhealth",
+    "appService.deploySubpath": ".",
+    "appService.zipIgnorePattern": [
+        "node_modules{,/**}",
+        ".vscode{,/**}"
+    ]
+}
