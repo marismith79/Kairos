@@ -1,8 +1,16 @@
 {
+  "type": "module",
   "scripts": {
-    "dev": "concurrently \"cd ./server && npm run dev\" \"cd ./client && npm run dev\""
+    "preinstall": "npm install -g typescript",
+    "dev": "concurrently \"cd ./server && npm run dev\" \"cd ./client && npm run dev\"",
+    "start": "npm run build && cd server && npm start",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "cd client && npm install && npm run build",
+    "build:server": "cd server && npm install && npm run build",
+    "deploy": " zip -r app.zip . && az webapp deploy --resource-group PrevilonHealth-eus --name previlonhealth --src-path ./app.zip --type zip --async true"
   },
   "dependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "typescript": "^5.7.3"
   }
 }

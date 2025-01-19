@@ -10,7 +10,7 @@
 <ul>
 <li>
 Add the following to client/vite.config.js
-Here /api/v1 is mapped to http://localhost:5000/ which is where the server resides
+Here /api/v1 is mapped to http://localhost:3000/ which is where the server resides
 
 ```
 server: {
