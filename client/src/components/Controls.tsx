@@ -2,7 +2,7 @@ import React from "react";
 import { useVoice } from "@humeai/voice-react";
 import { Button } from "./ui/button";
 import { Mic, MicOff, Phone } from "lucide-react";
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from "framer-motion";
 import { Toggle } from "./ui/toggle";
 import { cn } from "../lib/utils";
 
@@ -16,7 +16,7 @@ export default function Controls() {
         "bg-gradient-to-t from-card via-card/90 to-card/0"
       )}
     >
-      {/* <AnimatePresence> */}
+      <AnimatePresence>
         {status.value === "connected" ? (
           <motion.div
             initial={{
@@ -53,7 +53,7 @@ export default function Controls() {
             </Toggle>
 
             <div className={"relative grid h-8 w-48 shrink grow-0"}>
-              {/* <MicFFT fft={micFft} className={"fill-current"} /> FOR VISUALIZING INPUT AUDIO AS USER SPEAKS*/}
+              {/* <MicFFT fft={micFft} className={"fill-current"} /> */}
             </div>
 
             <Button
@@ -73,8 +73,8 @@ export default function Controls() {
               <span>End Call</span>
             </Button>
           </motion.div>
-        ) : null}
-      {/* </AnimatePresence> */}
+        ) : null} {/* Explicitly return null if the condition isn't met */}
+      </AnimatePresence>
     </div>
   );
 }
