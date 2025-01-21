@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 import { Request, Response } from "express";
 import path, { dirname } from "path";
 import dotenv from 'dotenv';
+import { fetchAccessToken } from 'hume';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -15,7 +16,8 @@ const envPath = isProduction
   ? path.join(__dirname, '../../../.env')    // Azure path
   : path.join(__dirname, '../../.env');      // Local path
 
-dotenv.config({ path: envPath });
+// dotenv.config({ path: envPath }); FOR SOME REASON IS NOT ALLOWING PROCESS.ENV TO WORK
+dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -33,6 +35,36 @@ app.get("/api/v1", (req: Request, res: Response) => {
   res.send("hello !!!!");
 });
 
+app.get('/api/getHumeAccessToken', async (req: Request, res: Response) => {
+  const apiKey = process.env.HUME_API_KEY;
+  const secretKey = process.env.HUME_SECRET_KEY;
+
+  if (!apiKey || !secretKey) {
+    return res.status(500).json({
+      error: 'Hume API key or Secret key is missing on the server.',
+    });
+  }
+
+  try {
+    const accessToken = await fetchAccessToken({
+      apiKey,
+      secretKey,
+    });
+
+    if (!accessToken) {
+      return res.status(500).json({
+        error: 'Failed to fetch Hume access token from Hume API.',
+      });
+    }
+
+    // Return the token to the client
+    res.json({ accessToken });
+  } catch (error) {
+    console.error('Error fetching Hume access token:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // Adjust index.html path based on environment
 app.get('*', (req, res) => {
   const indexPath = isProduction
@@ -44,4 +76,6 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}, env port is ${process.env.PORT}`);
+  console.log("Hume API Key:", process.env.HUME_API_KEY);
+  console.log("Hume Secret Key:", process.env.HUME_SECRET_KEY); 
 });

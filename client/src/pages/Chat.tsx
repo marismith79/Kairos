@@ -23,7 +23,7 @@ export default function Chat() {
     fetchAccessToken();
   }, []);
 
-  const timeout = useRef<number | null>(null);
+  const timeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const ref = useRef<ComponentRef<typeof Messages> | null>(null);
 
   // Show a loader while fetching the token

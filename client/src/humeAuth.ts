@@ -1,26 +1,13 @@
-import { fetchAccessToken } from 'hume';
-
 export async function getHumeAccessToken() {
-  const apiKey = 'ocPhYbHTfeKulrbozQyjtW4SAvKEXdk9FtfoSY6Plz8ZJXtH' // (window as any).__VITE_HUME_API_KEY__;
-  const secretKey = '8Cyu9oq2cs3onDVJdHfYvMvpadF65QgO2HDiGCcyNHjOSdI1O6r16lSkBaNtE7kw' // (window as any).__VITE_HUME_SECRET_KEY__;
-  console.log("API Key:", apiKey);
-  console.log("Secret Key:", secretKey);
-
-
-  if (!apiKey || !secretKey) {
-    throw new Error('Hume API key or Secret key is missing.');
+  try {
+    const response = await fetch('http://localhost:3000/api/getHumeAccessToken'); 
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.accessToken;
+  } catch (error) {
+    console.error('Error fetching Hume access token from server:', error);
+    throw error;
   }
-
-  const accessToken = await fetchAccessToken({
-    apiKey,
-    secretKey,
-  });
-
-  if (!accessToken) {
-    throw new Error('Failed to fetch Hume access token.');
-  }
-
-  return accessToken;
 }
-
-
