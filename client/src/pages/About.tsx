@@ -2,23 +2,23 @@ import "../App.css"
 
 export default function About() {
   return (
-    <div>
+    <div className="section-container">
       <section>
-        <h1>About Us</h1>
+        <h1 className="page-header">About Us</h1>
         <p>
           We are committed to connecting individuals with mental health and substance abuse resources in their local communities.
         </p>
       </section>
 
       <section>
-        <h2>Our Mission</h2>
+        <h2 className="page-header">Our Mission</h2>
         <p>
           Our mission is to break down barriers to mental health and substance abuse treatment by providing easy access to nearby facilities and resources.
         </p>
       </section>
 
       <section>
-        <h2>Team</h2>
+        <h2 className="page-header">Team</h2>
         <div>
           Partner logo placeholders
           <div>
