@@ -24,12 +24,27 @@
   align-items: center;
   justify-content: center;
   min-height: 90vh;
+  position: relative;
 }
+
+.section-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  /* background-color: #ffffff; */
+  /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+  border-radius: 8px;
+  position: relative;
+}
+
 .App-logo {
   pointer-events: none;
   background-color: transparent;
-  width: 100px; 
-  height: 100px; 
+  padding-top: 100px;
+  padding-bottom: 100px;
+  width: 100px;
+  height: 100px;
   display: block;
   margin: 0 auto;
 }
@@ -42,10 +57,10 @@
 
 .App-header {
   background-color: #fef3e6;
-  min-height: 10vh;
+  min-height: 2vh;
   display: flex;
   flex-direction: column;
-  text-align: right;
+  text-align: center;
   justify-content: top;
   font-size: calc(10px + 2vmin);
   color: rgb(33, 5, 5);
