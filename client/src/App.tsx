@@ -1,10 +1,12 @@
 import "./App.css";
+import './index.css'
 import axios from "axios";
-import { useState } from "react";
+import { useState, CSSProperties } from "react";
 import { Route, Switch } from "wouter";
 import About from "./pages/About";
 import Chat from "./pages/Chat";
-import { Footer } from "./components/Footer";
+import { Header } from "./components/Header";
+import { Body } from "./components/Home";
 
 function App() {
   const [data, setData] = useState();
@@ -20,15 +22,13 @@ function App() {
   }
 
   return (
-    // <div className="App">
-    <div className="min-h-screen flex flex-col bg-[#fef3e6] ff0000">
+    <div>
+      <Header />
       <Switch>
-        <div className="flex-grow">
         <Route path="/about" component={About} />
         <Route path="/chat" component={Chat} />
-        </div>
+        <Route path="/home" component={Body} />
       </Switch>
-      <Footer />
     </div>
   );
 }

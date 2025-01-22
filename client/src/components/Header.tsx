@@ -1,3 +1,5 @@
+import "../App.css";
+
 import { Button } from "../components/ui/button";
 import { Link } from "wouter";
 
@@ -13,6 +15,11 @@ export function Header() {
         <Link href="/chat">
         <Button>
             Chat
+        </Button>
+        </Link>
+        <Link href="/home">
+        <Button>
+            Home
         </Button>
         </Link>
       </nav>
