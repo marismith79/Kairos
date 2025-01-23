@@ -136,3 +136,50 @@ button:focus {
   outline: none;
   /* border-bottom: 2px solid #000000; */
 }
+
+/* Ensure messages are contained and aligned */
+.message-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 80vh; /* Limit the height */
+  overflow-y: auto;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+/* Style for individual messages */
+.message {
+  background-color: #f1f1f1;
+  padding: 10px 15px;
+  border-radius: 15px;
+  max-width: 80%;
+  word-wrap: break-word;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.message.user {
+  background-color: #e1f5fe; /* Light blue for user messages */
+  align-self: flex-end;
+}
+
+.message.assistant {
+  background-color: #fff8e1; /* Light yellow for assistant messages */
+  align-self: flex-start;
+}
+
+/* For message text */
+.message .role {
+  font-weight: bold;
+}
+
+.message .content {
+  margin-top: 5px;
+}
+
+/* Scrollable container */
+.message-container {
+  overflow-y: auto;
+  padding: 0 15px;
+}

@@ -7,7 +7,11 @@ import { motion } from "framer-motion";
 import { Toggle } from "./ui/toggle";
 import { cn } from "../utils/index";
 
-export default function Controls() {
+interface ControlsProps {
+  onEndCall: () => void; // Accept the onEndCall handler as a prop
+}
+
+export default function Controls({ onEndCall }: ControlsProps) {
   const { disconnect, status, isMuted, unmute, mute, micFft } = useVoice();
 
   return (
@@ -27,7 +31,14 @@ export default function Controls() {
             <MicFFT fft={micFft} className={"fill-current"} />
           </div>
 
-          <Button className={"flex items-center gap-1"} onClick={() => disconnect()} variant={"destructive"}>
+          <Button
+            className={"flex items-center gap-1"}
+            onClick={() => {
+              disconnect();  // Disconnect the call
+              onEndCall();   // Call the provided onEndCall handler
+            }}
+            variant={"destructive"}
+          >
             <span>
               <Phone className={"size-4 opacity-50"} strokeWidth={2} stroke={"currentColor"} />
             </span>

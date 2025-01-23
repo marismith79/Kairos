@@ -1,4 +1,4 @@
-/* @tailwind base;
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -51,4 +51,4 @@
   * {
     @apply font-sans;
   }
-} */
+}
