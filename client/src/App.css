@@ -31,18 +31,18 @@
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 20px 20px 20px 20px;
   border-radius: 8px;
-  position: absolute;
+  position: relative;
 }
 
 .App-logo {
   pointer-events: none;
   background-color: transparent;
-  width: 100px;
-  height: 100px;
+  width: 200px;
+  height: 280px;
   display: block;
-  margin: 0 auto;
+  margin: 140px auto 110px auto; 
   object-fit: contain;
   position: relative;
 }
@@ -50,7 +50,7 @@
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
-    transform-origin: 50.5% 58%;
+    transform-origin: center;
   }
 }
 
@@ -74,26 +74,65 @@
   color: rgb(33, 5, 5);
 }
 
+.header-container {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.Header1 {
+  background-color: #67d87ee1;
+  height: 10vh;
+  width: 50%;
+  padding: 0 7%;
+  font-weight: 1000;
+  flex-direction: row;
+  text-align: left;
+  font-size: calc(10px + 2vmin);
+  color: rgb(33, 5, 5);
+  justify-content: center;
+}
+
+.Header2 {
+  background-color: #67d87ee1;
+  height: 10vh;
+  width: 50%;
+  padding: 0 7%;
+  text-align: right;
+  align-items: right;
+  list-style: none;
+  font-size: calc(10px + 2vmin);
+  color: rgb(33, 5, 5);
+  justify-content: right;
+}
+
+.nav {
+  width: 100%;
+  text-align: right;
+  align-items: right;
+
+}
 
 button {
   font-size: calc(10px + 2vmin);
   font-family: nanummyeongjo;
   font-weight: bold;
-  min-height: 5vh;
-  padding: 10px 20px;
+  padding: 25px;
   border: none;
-  background-color: #fef3e6;
+  background-color: transparent;
   color: rgb(0, 0, 0);
   cursor: pointer;
+  align-items: right;
+  text-align: right;
   transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 button:active {
-  background-color: #000000;
+  border-bottom: 2px solid #000000;
   transform: scale(1);
 }
 
 button:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(33, 161, 241, 0.5);
+  border-bottom: 2px solid #000000;
 }
