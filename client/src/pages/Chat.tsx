@@ -34,7 +34,7 @@ export default function Chat() {
   console.log(accessToken)
 
   return (
-    <div>
+    <div className="relative grow flex flex-col mx-auto w-full overflow-hidden h-[0px]">
       <VoiceProvider
         auth={{ type: "apiKey", value: apiKey }}
         onMessage={() => {

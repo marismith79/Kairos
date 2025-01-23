@@ -1,50 +1,33 @@
-import React from "react";
-// import { cn } from "../lib/utils";
+import { cn } from "../lib/utils";
 import { useVoice } from "@humeai/voice-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { ComponentRef, forwardRef } from "react";
+import Expressions from "./Expressions";
 
-const Messages = forwardRef<
-  ComponentRef<typeof motion.div>,
-  Record<never, never>
->(function Messages(_, ref) {
+const Messages = forwardRef<ComponentRef<typeof motion.div>, Record<never, never>>(function Messages(_, ref) {
   const { messages } = useVoice();
 
   return (
-    <motion.div
-      layoutScroll
-      ref={ref}
-    >
-      <motion.div>
+    <motion.div layoutScroll className={"grow rounded-md overflow-auto p-4"} ref={ref}>
+      <motion.div className={"max-w-2xl mx-auto w-full flex flex-col gap-4 pb-24"}>
         {messages.map((msg, index) => {
-          if (
-            msg.type === "user_message" ||
-            msg.type === "assistant_message"
-          ) {
+          if (msg.type === "user_message" || msg.type === "assistant_message") {
             return (
               <motion.div
                 key={msg.type + index}
-                initial={{
-                  opacity: 0,
-                  y: 10,
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                exit={{
-                  opacity: 0,
-                  y: 0,
-                }}
+                className={cn("w-[80%]", "bg-card", "border border-border rounded", msg.type === "user_message" ? "ml-auto" : "")}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 0 }}
               >
-                <div>
+                <div className={cn("text-xs capitalize font-medium leading-none opacity-50 pt-4 px-3")}>
                   {msg.message.role}
                 </div>
-                <div>{msg.message.content}</div>
+                <div className={"pb-3 px-3"}>{msg.message.content}</div>
+                <Expressions values={msg.models.prosody?.scores} />
               </motion.div>
             );
           }
-
           return null;
         })}
       </motion.div>

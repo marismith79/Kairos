@@ -1,15 +1,14 @@
 import { useVoice } from "@humeai/voice-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "./ui/button";
 import { Phone } from "lucide-react";
 
 export default function StartCall() {
-  const { status, connect } = useVoice(); // Access voice connection status and connect function
+  const { status, connect } = useVoice();
 
   return (
-    <AnimatePresence>
-      {/* Only show the start call button if not connected */}
-      {status.value !== "connected" ? (
+    <>
+      {status.value !== "connected" && (
         <motion.div
           initial="initial"
           animate="enter"
@@ -20,34 +19,29 @@ export default function StartCall() {
             exit: { opacity: 0 },
           }}
         >
-          <AnimatePresence>
-            <motion.div
-              variants={{
-          initial: { scale: 0.5 },
-          enter: { scale: 1 },
-          exit: { scale: 0.5 },
+          <motion.div
+            variants={{
+              initial: { scale: 0.5 },
+              enter: { scale: 1 },
+              exit: { scale: 0.5 },
+            }}
+          >
+            <Button
+              onClick={() => {
+                connect()
+                  .then(() => console.log("Connected"))
+                  .catch((error) => console.error("Connection error:", error))
+                  .finally(() => console.log("Connection attempt finished"));
               }}
             >
-              <Button
-          onClick={() => {
-            connect()
-              .then(() => console.log("Connected"))
-              .catch((error) => console.error("Connection error:", error))
-              .finally(() => console.log("Connection attempt finished"));
-          }}
-              >
-          <span>
-            <Phone
-              strokeWidth={2}
-              stroke={"currentColor"}
-            />
-          </span>
-          <span>Start Call</span>
-              </Button>
-            </motion.div>
-          </AnimatePresence>
+              <span>
+                <Phone strokeWidth={2} stroke={"currentColor"} />
+              </span>
+              <span>Start Call</span>
+            </Button>
+          </motion.div>
         </motion.div>
-      ) : null}
-    </AnimatePresence>
+      )}
+    </>
   );
 }
