@@ -4,6 +4,7 @@ import Messages from "../components/Messages";
 import Controls from "../components/Controls";
 import StartCall from "../components/StartCall";
 import { getHumeAccessToken } from "../humeAuth";
+import EmotionsLogger from "../components/EmotionsLogger";
 
 export default function Chat() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -129,7 +130,11 @@ export default function Chat() {
         auth={{ type: "accessToken", value: accessToken }}  // Use the access token here
         onMessage={handleMessage} // Add new message to the state
       >
-        <Messages ref={ref} messages={messages} />
+        <div className="chat-container">
+          <EmotionsLogger/>
+          <Messages ref={ref} messages={messages} />
+        </div>
+        
         <Controls onEndCall={handleEndCall} /> 
         <StartCall />
       </VoiceProvider>
