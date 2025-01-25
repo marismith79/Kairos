@@ -1,8 +1,6 @@
-"use client";
 import { Hume } from "hume";
 import { expressionColors, isExpressionColor } from "../utils/expressionColors";
 import { motion } from "framer-motion";
-import { CSSProperties } from "react";
 import * as R from "remeda";
 
 export default function Expressions({
@@ -35,7 +33,7 @@ export default function Expressions({
                 "--bg": isExpressionColor(key)
                   ? expressionColors[key]
                   : "var(--bg)",
-              } as React.CSSProperties // Ensure correct type usage here
+              } as React.CSSProperties
             }
           >
             <div

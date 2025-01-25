@@ -10,6 +10,11 @@ export function Header() {
       </div>
       <div className="Header2">
         <nav className="nav">
+        <Link href="/home">
+            <Button>
+              Home
+            </Button>
+          </Link>
           <Link href="/about">
             <Button>
               About
@@ -18,11 +23,6 @@ export function Header() {
           <Link href="/chat">
             <Button>
               Chat
-            </Button>
-          </Link>
-          <Link href="/home">
-            <Button>
-              Home
             </Button>
           </Link>
         </nav>

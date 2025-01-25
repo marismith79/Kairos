@@ -8,7 +8,7 @@ import { Toggle } from "./ui/toggle";
 import { cn } from "../utils/index";
 
 interface ControlsProps {
-  onEndCall: () => void; // Accept the onEndCall handler as a prop
+  onEndCall: () => void; 
 }
 
 export default function Controls({ onEndCall }: ControlsProps) {

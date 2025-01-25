@@ -1,6 +1,7 @@
 import { cn } from "../lib/utils";
 import { motion } from "framer-motion";
 import { ComponentRef, forwardRef } from "react";
+import { useEffect, useState } from "react";
 import Expressions from "./Expressions";
 
 // Accept messages as props
@@ -19,7 +20,7 @@ const Messages = forwardRef<ComponentRef<typeof motion.div>, { messages: any[] }
             >
               <div className="role">{msg.message.role}</div>
               <div className="content">{msg.message.content}</div>
-              <Expressions values={msg.models.prosody?.scores} />
+              {/* <Expressions values={msg.models.prosody?.scores} /> */}
             </motion.div>
           );
         }

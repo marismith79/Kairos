@@ -81,7 +81,7 @@
 }
 
 .Header1 {
-  background-color: #67d87ee1;
+  background-color: #5EC184;
   height: 10vh;
   width: 50%;
   padding: 0 7%;
@@ -94,7 +94,7 @@
 }
 
 .Header2 {
-  background-color: #67d87ee1;
+  background-color: #5EC184;
   height: 10vh;
   width: 50%;
   padding: 0 7%;
@@ -160,18 +160,21 @@ button:focus {
 }
 
 .message.user {
-  background-color: #e1f5fe; /* Light blue for user messages */
+  background-color: #e1f5fe;
+  font-size: large;
   align-self: flex-end;
 }
 
 .message.assistant {
-  background-color: #fff8e1; /* Light yellow for assistant messages */
+  background-color: #ffe1ffda; /* Light yellow for assistant messages */
+  font-size: large;
   align-self: flex-start;
 }
 
 /* For message text */
 .message .role {
   font-weight: bold;
+  font-size: 20px;
 }
 
 .message .content {
