@@ -97,6 +97,12 @@ class HumeService {
   private audioQueue: Blob[] = [];
 
   /**
+   * the config ID for our Hume configuration
+   */
+
+  private configID = process.env.HUME_CONFIG_ID
+
+  /**
    * mime type supported by the browser the application is running in
    */
   private mimeType: MimeType = (() => {
@@ -155,7 +161,7 @@ class HumeService {
     // instantiates WebSocket and establishes an authenticated connection
     this.socket = await this.client.empathicVoice.chat.connect({
       // configuration that includes the get_current_weather tool
-      configId: process.env.HUME_CONFIG_ID || undefined,
+      configId: this.configID,
       resumedChatGroupId: this.chatGroupId,
     });
 
