@@ -2,13 +2,14 @@ import { useVoice } from "@humeai/voice-react";
 import { motion } from "framer-motion";
 import { Button } from "./ui/button";
 import { Phone } from "lucide-react";
+import { connected, connect, disconnect } from "../humeService";
 
 export default function StartCall() {
-  const { status, connect } = useVoice();
+  // const { status, connect } = useVoice();
 
   return (
     <>
-      {status.value !== "connected" && (
+      {connected !== true && (
         <motion.div
           initial="initial"
           animate="enter"
