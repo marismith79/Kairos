@@ -94,10 +94,10 @@ export default function Chat() {
   //   }, 200);
   // };
   
-  // const handleEndCall = () => {
-  //   // Do not reset messages when the call ends
-  //   console.log("Call ended");
-  // };
+  const handleEndCall = () => {
+    // Do not reset messages when the call ends
+    console.log("Call ended");
+  };
 
   // const handleStartCall = () => {
   //   // Clear messages when the StartCall button is pressed
@@ -112,8 +112,7 @@ export default function Chat() {
           <EmotionsLogger/>
           {/* <Messages ref={ref} messages={messages} /> */}
         </div>
-        
-        {/* <Controls onEndCall={handleEndCall} />  */}
+        <Controls onEndCall={handleEndCall} /> 
         <StartCall />
     </div>
   );

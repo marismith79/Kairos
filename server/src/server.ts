@@ -45,7 +45,7 @@ app.get("/api/v1", (req: Request, res: Response) => {
 app.get("/api/getHumeAccessToken", async (req: Request, res: Response) => {
   const apiKey = process.env.HUME_API_KEY;
   const secretKey = process.env.HUME_SECRET_KEY;
-
+  
   if (!apiKey || !secretKey) {
     return res.status(500).json({
       error: "Hume API key or Secret key is missing on the server.",

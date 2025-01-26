@@ -1,12 +1,17 @@
-import { useVoice } from "@humeai/voice-react";
 import { motion } from "framer-motion";
 import { Button } from "./ui/button";
 import { Phone } from "lucide-react";
-import { connected, connect, disconnect } from "../humeService";
+import { useHume } from '../hooks/useHume';
+
 
 export default function StartCall() {
-  // const { status, connect } = useVoice();
 
+  const { 
+        connected, 
+        connect, 
+      } = useHume();
+
+  console.log("StartCall connected:", connected);
   return (
     <>
       {connected !== true && (
@@ -29,10 +34,11 @@ export default function StartCall() {
           >
             <Button
               onClick={() => {
+                console.log(connected);
                 connect()
-                  .then(() => console.log("Connected"))
+                  .then(() => console.log(connected))
                   .catch((error) => console.error("Connection error:", error))
-                  .finally(() => console.log("Connection attempt finished"));
+                  .finally(() => console.log("Connection attempt finished", connected));
               }}
             >
               <span>
@@ -46,3 +52,4 @@ export default function StartCall() {
     </>
   );
 }
+
