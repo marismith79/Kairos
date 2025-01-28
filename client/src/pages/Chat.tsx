@@ -1,93 +1,152 @@
+
 import { useEffect, useState, useRef } from "react";
-import { VoiceProvider } from "@humeai/voice-react";
+import { humeService } from "../humeService"; // Make sure HumeService is imported
 import Messages from "../components/Messages";
 import Controls from "../components/Controls";
 import StartCall from "../components/StartCall";
 import EmotionsLogger from "../components/EmotionsLogger";
 
-export default function Chat() {
-  const [messages, setMessages] = useState<any[]>([]); // Store messages in state
-  const timeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const ref = useRef<HTMLDivElement | null>(null);
+// export default function Chat() {
+//   const [messages, setMessages] = useState<any[]>([]); // Store messages in state
+//   const [connected, setConnected] = useState<boolean>(false);
 
-  // Add message to state with typing effect
-  const handleMessage = (newMessage: any) => {
-    // Check if the message is an interruption or metadata, and skip it
-    if (newMessage.type === "user_interruption" || newMessage.type === "assistant_end" || newMessage.type === "chat_metadata") {
-      console.log("Skipping interruption or system message:", newMessage);
-      return; 
-    }
+//   const timeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+//   const ref = useRef<HTMLDivElement | null>(null);
 
-    if (!newMessage || !newMessage.message || !newMessage.message.content) {
-      console.error("Invalid message structure", newMessage);
-      return; 
-    }
+//   // Subscribe to the store and handle incoming messages
+//   useEffect(() => {
+//     // Subscribe to store to listen for new messages
+//     const unsubscribe = humeService.getStore().subscribe((state) => {
+//       setConnected(state.connected);
+//       if (state.connected) {
+//         humeService.socket?.on("message", (message) => {
+//           if (message.type === "assistant_message") {
+//             const latestMessage = {
+//               type: "assistant_message",
+//               message: {
+//                 role: "assistant",
+//                 content: message.message.content,
+//               },
+//             };
+//             handleMessage(latestMessage);
+//       }
+//       });
+//       }
+//     });
 
-    const messageContent = newMessage.message.content;
-  
-    if (!messageContent) {
-      console.error("Message content is empty", newMessage);
-      return;
-    }
+//     // Cleanup on unmount: unsubscribe and disconnect
+//     return () => {
+//       unsubscribe();
+//       humeService.disconnect();
+//     };
+//   }, [humeService]);
 
-    let index = 0;
-    let displayedContent = "";
+//   // Message handling logic to simulate message display
+//   const handleMessage = (newMessage: any) => {
+//     if (!newMessage || !newMessage.message || !newMessage.message.content) {
+//       console.error("Invalid message structure", newMessage);
+//       return;
+//     }
 
-    // Simulate typing effect
-    const simulateTypingEffect = async () => {
-      // Display the message content one character at a time
-      while (index < messageContent.length) {
-        displayedContent += messageContent[index];
-        index += 1;
+//     const messageContent = newMessage.message.content;
 
-        // Update the last message in the array with the progressively displayed content
-        setMessages((prevMessages) => {
-          const updatedMessages = [...prevMessages];
-          updatedMessages[updatedMessages.length - 1] = {
-            ...newMessage,
-            message: { ...newMessage.message, content: displayedContent },
-          };
-          return updatedMessages;
-        });
+//     if (!messageContent) {
+//       console.error("Message content is empty", newMessage);
+//       return;
+//     }
 
-        await new Promise((resolve) => setTimeout(resolve, 50)); // Adjust typing speed
-      }
-    };
+//     let index = 0;
+//     let displayedContent = "";
 
-    // Add the initial message to the state
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
+//     // Simulate typing effect for the message content
+//     const simulateTypingEffect = async () => {
+//       while (index < messageContent.length) {
+//         displayedContent += messageContent[index];
+//         index += 1;
 
-    simulateTypingEffect();
+//         setMessages((prevMessages) => {
+//           const updatedMessages = [...prevMessages];
+//           updatedMessages[updatedMessages.length - 1] = {
+//             ...newMessage,
+//             message: { ...newMessage.message, content: displayedContent },
+//           };
+//           return updatedMessages;
+//         });
 
-    // Scroll the message container to the bottom
-    if (timeout.current) {
-      clearTimeout(timeout.current);
-    }
+//         await new Promise((resolve) => setTimeout(resolve, 50)); // Adjust typing speed
+//       }
+//     };
 
-    timeout.current = setTimeout(() => {
-      if (ref.current) {
-        const scrollHeight = ref.current.scrollHeight;
-        ref.current.scrollTo({
-          top: scrollHeight,
-          behavior: "smooth",
-        });
-      }
-    }, 200);
-  };
+//     setMessages((prevMessages) => [...prevMessages, newMessage]);
+//     simulateTypingEffect();
+
+//     if (timeout.current) {
+//       clearTimeout(timeout.current);
+//     }
+
+//     timeout.current = setTimeout(() => {
+//       if (ref.current) {
+//         const scrollHeight = ref.current.scrollHeight;
+//         ref.current.scrollTo({
+//           top: scrollHeight,
+//           behavior: "smooth",
+//         });
+//       }
+//     }, 200);
+//   };
+
+//   const handleEndCall = () => {
+//     console.log("Call ended");
+//   };
+
+//   return (
+//     <div className="relative grow flex flex-col mx-auto w-full overflow-hidden h-[0px]">
+//       <div className="chat-container" ref={ref}>
+//         <EmotionsLogger />
+//         <Messages messages={messages} />
+//       </div>
+//       <Controls onEndCall={handleEndCall} />
+//       <StartCall />
+//     </div>
+//   );
+// }
+
+
+import ChatCard from '../components/ChatCard'; 
+
+export default function Chat(): JSX.Element {
+  const [messages, setMessages] = useState<any[]>([]);
 
   const handleEndCall = () => {
-    // Do not reset messages when the call ends
     console.log("Call ended");
   };
+  
+  useEffect(() => {
+    // Subscribe to messages from HumeService
+    const messageListener = (message: any) => {
+      setMessages((prevMessages) => [...prevMessages, message]);
+    };
+
+    // Add the message listener when component mounts
+    humeService.addMessageListener(messageListener);
+
+    // Cleanup listener when component unmounts
+    return () => {
+      humeService.removeMessageListener(messageListener);
+    };
+  }, []);
 
   return (
-    <div className="relative grow flex flex-col mx-auto w-full overflow-hidden h-[0px]">
-      <div className="chat-container" ref={ref}>
-        <EmotionsLogger />
-        <Messages messages={messages} /> {/* Pass the messages to the Messages component */}
+    <div className="chat-container">
+      {/* Render each message */}
+      <div id="chat">
+      <EmotionsLogger />
+        {messages.map((message, index) => (
+          <ChatCard key={index} message={message} />
+        ))}
+        <StartCall />
+        <Controls onEndCall={handleEndCall} />
       </div>
-      <Controls onEndCall={handleEndCall} />
-      <StartCall />
     </div>
   );
 }

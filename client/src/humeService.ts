@@ -9,6 +9,7 @@ import {
   getBrowserSupportedMimeType,
   MimeType,
 } from "hume";
+import { handleToolCallMessage } from "./tools/humeToolCall";
 
 // Define types for your store state
 interface HumeState {
@@ -49,6 +50,22 @@ class HumeStore {
 class HumeService {
   private static instance: HumeService;
   private store: HumeStore;
+  private messageListeners: Set<(message: any) => void> = new Set(); // To handle message events
+
+  // Method to add a listener for new messages
+  public addMessageListener(listener: (message: any) => void): void {
+    this.messageListeners.add(listener);
+  }
+
+  // Method to remove a listener
+  public removeMessageListener(listener: (message: any) => void): void {
+    this.messageListeners.delete(listener);
+  }
+
+  // Broadcast message to listeners
+  private broadcastMessage(message: any): void {
+    this.messageListeners.forEach((listener) => listener(message));
+  }
 
   /**
    * the Hume Client, includes methods for connecting to EVI and managing the Web Socket connection
@@ -100,7 +117,7 @@ class HumeService {
    * the config ID for our Hume configuration
    */
 
-  private configID = process.env.HUME_CONFIG_ID
+  private configID = "3b2e59d1-9efc-4424-90bd-fa497a57bc57"
 
   /**
    * mime type supported by the browser the application is running in
@@ -116,7 +133,7 @@ class HumeService {
     // Bind all event handlers in constructor
     this.handleWebSocketOpenEvent = this.handleWebSocketOpenEvent.bind(this);
     this.handleWebSocketCloseEvent = this.handleWebSocketCloseEvent.bind(this);
-    this.handleWebSocketMessageEvent =this.handleWebSocketMessageEvent.bind(this);
+    this.handleWebSocketMessageEvent = this.handleWebSocketMessageEvent.bind(this);
     this.handleWebSocketErrorEvent = this.handleWebSocketErrorEvent.bind(this);
   }
 
@@ -160,7 +177,7 @@ class HumeService {
 
     // instantiates WebSocket and establishes an authenticated connection
     this.socket = await this.client.empathicVoice.chat.connect({
-      // configuration that includes the get_current_weather tool
+      // configuration that includes the resource finder tool
       configId: this.configID,
       resumedChatGroupId: this.chatGroupId,
     });
@@ -343,10 +360,11 @@ class HumeService {
         break;
 
       // invoke tool upon receiving a tool_call message
-      // case "tool_call":
-      //   handleToolCallMessage(message, socket);
-      //   break;
+      case "tool_call":
+        handleToolCallMessage(message, this.socket);
+        break;
     }
+    this.broadcastMessage(message);
   }
 
   /**
@@ -399,15 +417,6 @@ class HumeService {
       if (chat) chat.scrollTop = chat.scrollHeight;
     }
   
-    // Function to toggle the disabled state of start and stop buttons
-    private toggleBtnStates(): void {
-      const startBtn = document.querySelector<HTMLButtonElement>("button#start-btn");
-      const stopBtn = document.querySelector<HTMLButtonElement>("button#stop-btn");
-  
-      if (startBtn) startBtn.disabled = !startBtn.disabled;
-      if (stopBtn) stopBtn.disabled = !stopBtn.disabled;
-    }
-  
     // Function to extract the top 3 emotions from a message
     private extractTopThreeEmotions(
       message:
@@ -451,7 +460,7 @@ class HumeService {
   }
   
   class ChatCard {
-    private message: ChatMessage;
+    public message: ChatMessage;
   
     constructor(message: ChatMessage) {
       this.message = message;
