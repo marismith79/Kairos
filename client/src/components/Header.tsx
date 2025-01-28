@@ -12,7 +12,7 @@ export function Header() {
       </div>
       <div className="Header2">
         <nav className="nav">
-        <Link href="/">
+        <Link href="/home">
             <Button>
               Home
             </Button>

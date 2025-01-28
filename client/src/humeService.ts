@@ -15,7 +15,8 @@ import { handleToolCallMessage } from "./tools/humeToolCall";
 interface HumeState {
   connected: boolean;
   isRecording: boolean;
-  audioStream: MediaStream | null; // the stream of audio captured from the user's microphone
+  audioStream: MediaStream | null;
+  message: string | null; 
 }
 
 class HumeStore {
@@ -23,6 +24,7 @@ class HumeStore {
     connected: false,
     isRecording: false,
     audioStream: null,
+    message: null,
   };
   private listeners: Set<(state: HumeState) => void> = new Set();
 
@@ -325,7 +327,8 @@ class HumeService {
   ): Promise<void> {
     /* place logic here which you would like to invoke when receiving a message through the socket */
     console.log(message);
-
+      // Validate the message structure
+    
     // handle messages received through the WebSocket (messages are distinguished by their "type" field.)
     switch (message.type) {
       // save chat_group_id to resume chat if disconnected

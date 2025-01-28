@@ -27,7 +27,7 @@ function App() {
       <Switch>
         <Route path="/about" component={About} />
         <Route path="/chat" component={Chat} />
-        <Route path="/" component={Body} />
+        <Route path="/home" component={Body} />
       </Switch>
     </div>
   );
