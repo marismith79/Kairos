@@ -4,7 +4,7 @@ import { Mic, MicOff, Phone } from "lucide-react";
 import MicFFT from "./MicFFT";
 import { motion } from "framer-motion";
 import { Toggle } from "./ui/toggle";
-import { cn } from "../utils/index";
+import { cn } from "../lib/utils";
 import { useHume } from '../hooks/useHume';
 
 interface ControlsProps {

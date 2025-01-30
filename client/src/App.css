@@ -229,7 +229,7 @@ button:focus {
   color: transparent;
   -webkit-background-clip: text;
   background-clip: text;
-  animation: shine 2s linear infinite;
+  animation: shine 2.4s linear infinite;
 }
 
 @keyframes shine {

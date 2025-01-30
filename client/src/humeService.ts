@@ -198,10 +198,17 @@ class HumeService {
     this.stopAudio();
 
     // stop audio capture
-    this.recorder?.stop();
-    this.recorder = null;
-    this.audioStream = null;
-
+    if (this.recorder) {
+      this.recorder.stop();  // Stop the recorder
+      this.recorder = null;   // Clear the recorder instance
+    }
+  
+    if (this.audioStream) {
+      // Stop all audio tracks to fully release the microphone
+      this.audioStream.getTracks().forEach((track) => track.stop());
+      this.audioStream = null;  // Clear the audio stream
+    }
+  
     // set connected state to false to prevent automatic reconnect
     this.getStore().setState({ connected: false });
 
@@ -212,6 +219,7 @@ class HumeService {
 
     // closed the Web Socket connection
     this.socket?.close();
+    this.socket = null; // Clear the socket instance
   }
 
   /**
