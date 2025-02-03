@@ -1,4 +1,3 @@
-// import "./App.css";
 import './index.css'
 import axios from "axios";
 import { useState, CSSProperties } from "react";
@@ -6,7 +5,7 @@ import { Route, Switch } from "wouter";
 import About from "./pages/About";
 import Chat from "./pages/Chat";
 import { Header } from "./components/Header";
-import { Body } from "./components/Home";
+import { Body } from "./pages/Home";
 
 function App() {
   const [data, setData] = useState();

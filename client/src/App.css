@@ -12,31 +12,33 @@
 .page-header {
   font-family: nanummyeongjo;
   font-weight: bold;
+  margin-top: 0%;
   display: flex;
   flex-direction: column;
   text-align: left;
   justify-content: center;
   min-height: 10vh;
-  font-size: calc(10px + 2vmin);
+  font-size: calc(10px + 2.5vmin);
   color: rgb(0, 0, 0);
 }
 
-.page-contents {
+.page-content {
   font-family: nanummyeongjo;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 90vh;
+  font-size: calc(7px + 2vmin);
   position: relative;
 }
 
 .section-container {
-  width: 100%;
-  max-width: 90vw;
-  margin: 0 auto;
-  padding: 20px 20px 20px 20px;
-  border-radius: 8px;
+  /* width: 100%; */
+  /* max-width: 90vw; */
+  /* margin: 0 auto; */
+  /* padding: 20px 20px 20px 20px; */
+  border-bottom: #000;
+  /* border-radius: 0px; */
   position: relative;
 }
 
@@ -73,12 +75,13 @@
 
 .App-header {
   background-color: #fef3e6;
+  margin-bottom: 100px;
   min-height: 2vh;
   display: flex;
   flex-direction: column;
   text-align: center;
   justify-content: top;
-  font-size: calc(10px + 2vmin);
+  font-size: calc(10px + 3vmin);
   color: rgb(33, 5, 5);
 }
 
@@ -87,6 +90,7 @@
   display: flex;
   width: 100%;
   justify-content: space-between;
+  border-bottom: 0.5px solid #000; /* Add this line for a thin bottom border */
 }
 
 .Header1 {
@@ -232,41 +236,6 @@ button:focus {
   border-top: 1px solid transparent;  /* Add this line */
 }
 
-
-/* Style for individual messages */
-/* .message {
-  background-color: #f1f1f1;
-  padding: 10px 15px;
-  border-radius: 15px;
-  max-width: 80%;
-  word-wrap: break-word;
-  font-size: 14px;
-  line-height: 1.5;
-} */
-
-/* .message.user {
-  background-color: #e1f5fe;
-  font-size: large;
-  align-self: flex-end;
-}
-
-.message.assistant {
-  background-color: #ffe1ffda; /* Light yellow for assistant messages */
-  /* font-size: large;
-  align-self: flex-start;
-} */ 
-
-/* For message text */
-/* .message .role {
-  font-weight: bold;
-  font-size: 20px;
-}
-
-.message .content {
-  margin-top: 5px;
-} */
-
- 
  /* Scrollable container */
 .message-container {
   overflow-y: auto;
@@ -302,17 +271,19 @@ button:focus {
 }
 
 .section-card {
-  background-color: rgba(94, 193, 132, 0.15); 
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  /* background-color: rgba(94, 193, 132, 0.15);  */
+  /* box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.1); */
   padding: 20px;
-  margin: 50px;
+  /* margin: 50px;  */
+  margin-bottom: 50px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-top: 0.5px solid #000; 
+  border-bottom: 0.5px solid #000; 
 }
 
 .section-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0px 12px rgba(0, 0, 0, 0.15);
 }
 
 .team-container {

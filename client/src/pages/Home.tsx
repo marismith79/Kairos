@@ -1,6 +1,6 @@
 import "../App.css";
 import logo from "../logo.png"; 
-import About from "../pages/About";
+import About from "./About";
 
 export function Body() {
     return (

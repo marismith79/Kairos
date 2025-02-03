@@ -1,20 +1,22 @@
 import "../App.css"
 import TeamMember from "../components/TeamMember";
+import image1 from "../shomari.jpeg"
+import image2 from "../alejandro.jpeg"
 
 export default function About() {
   return (
     <div className="section-container">
       <section className="section-card">
         <h1 className="page-header">About Us</h1>
-        <p>
-          We are committed to connecting individuals with mental health and substance abuse resources in their local communities.
+        <p className="page-content">
+          Kairos enables crisis care counselors to do what they do best–be a comforting voice to individuals in crisis. We're building real-time voice AI analytics into crisis calls to reduce counselor burnout and improve call quality.
         </p>
       </section>
 
       <section className="section-card">
-        <h2 className="page-header">Our Mission</h2>
-        <p>
-          Our mission is to break down barriers to mental health and substance abuse treatment by providing easy access to nearby facilities and resources.
+        <h2 className="page-header">Mission</h2>
+        <p className="page-content">
+          Our founders have seen first-hand how important every second is in crisis scenarios. We're building to make those seconds count and improve crisis care continuum pathways across the nation. 
         </p>
       </section>
 
@@ -24,12 +26,12 @@ export default function About() {
           <TeamMember
             name="Shomari C. Smith"
             role="Founder"
-            image="../../dist/assets/shomari.jpeg"
+            image={image1}
           />
           <TeamMember
             name="Alejandro Rojas"
             role="Founder"
-            image="../../dist/assets/alejandro.jpeg"
+            image={image2}
           />
         </div>
       </section>
