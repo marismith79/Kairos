@@ -3,6 +3,9 @@ import TeamMember from "../components/TeamMember";
 import image1 from "../shomari.jpeg"
 import image2 from "../alejandro.jpeg"
 
+const link1 = "https://www.linkedin.com/in/shomari-c-smith/"
+const link2 = "https://www.linkedin.com/in/alejandro-rojas-076a55242/"
+
 export default function About() {
   return (
     <div className="section-container">
@@ -23,16 +26,18 @@ export default function About() {
       <section className="section-card">
         <h2 className="page-header">Team</h2>
         <div className="team-container">
-          <TeamMember
-            name="Shomari C. Smith"
-            role="Founder"
-            image={image1}
-          />
-          <TeamMember
-            name="Alejandro Rojas"
-            role="Founder"
-            image={image2}
-          />
+            <TeamMember
+              name="Shomari C. Smith"
+              role="Founder"
+              image={image1}
+              link={link1}
+            />
+            <TeamMember
+              name="Alejandro Rojas"
+              role="Founder"
+              image={image2}
+              link={link2}
+            />
         </div>
       </section>
       <div>
