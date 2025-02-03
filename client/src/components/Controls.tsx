@@ -18,12 +18,13 @@ export default function Controls({ onEndCall }: ControlsProps) {
   const { 
     connected, 
     disconnect, 
+    connect,
   } = useHume();
 
   console.log("Controls connected:", connected);
 
   return (
-    <div className={cn("fixed bottom-0 left-0 w-full p-4 flex items-center justify-center", "bg-gradient-to-t from-card via-card/90 to-card/0")}>
+    <div className="controls">
       {connected === true && (
         <motion.div
           initial={{ y: "100%", opacity: 0 }}
@@ -53,6 +54,41 @@ export default function Controls({ onEndCall }: ControlsProps) {
             <span>End Call</span>
           </Button>
         </motion.div>
+      )}
+         {connected !== true && (
+        // <motion.div
+        //   initial="initial"
+        //   animate="enter"
+        //   exit="exit"
+        //   variants={{
+        //     initial: { opacity: 0 },
+        //     enter: { opacity: 1 },
+        //     exit: { opacity: 0 },
+        //   }}
+        // >
+        //   <motion.div
+        //     variants={{
+        //       initial: { scale: 0.5 },
+        //       enter: { scale: 1 },
+        //       exit: { scale: 0.5 },
+        //     }}
+        //   >
+            <Button
+              onClick={() => {
+                console.log(connected);
+                connect()
+                  .then(() => console.log(connected))
+                  .catch((error) => console.error("Connection error:", error))
+                  .finally(() => console.log("Connection attempt finished", connected));
+              }}
+            >
+              <span>
+                <Phone strokeWidth={2} stroke={"currentColor"} />
+              </span>
+              <span>Start Call</span>
+            </Button>
+        //   </motion.div>
+        // </motion.div>
       )}
     </div>
   );

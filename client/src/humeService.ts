@@ -16,7 +16,7 @@ interface HumeState {
   connected: boolean;
   isRecording: boolean;
   audioStream: MediaStream | null;
-  message: string | null; 
+  message: string | null;
 }
 
 class HumeStore {
@@ -119,7 +119,7 @@ class HumeService {
    * the config ID for our Hume configuration
    */
 
-  private configID = "3b2e59d1-9efc-4424-90bd-fa497a57bc57"
+  private configID = "3b2e59d1-9efc-4424-90bd-fa497a57bc57";
 
   /**
    * mime type supported by the browser the application is running in
@@ -135,7 +135,8 @@ class HumeService {
     // Bind all event handlers in constructor
     this.handleWebSocketOpenEvent = this.handleWebSocketOpenEvent.bind(this);
     this.handleWebSocketCloseEvent = this.handleWebSocketCloseEvent.bind(this);
-    this.handleWebSocketMessageEvent = this.handleWebSocketMessageEvent.bind(this);
+    this.handleWebSocketMessageEvent =
+      this.handleWebSocketMessageEvent.bind(this);
     this.handleWebSocketErrorEvent = this.handleWebSocketErrorEvent.bind(this);
   }
 
@@ -199,16 +200,16 @@ class HumeService {
 
     // stop audio capture
     if (this.recorder) {
-      this.recorder.stop();  // Stop the recorder
-      this.recorder = null;   // Clear the recorder instance
+      this.recorder.stop(); // Stop the recorder
+      this.recorder = null; // Clear the recorder instance
     }
-  
+
     if (this.audioStream) {
       // Stop all audio tracks to fully release the microphone
       this.audioStream.getTracks().forEach((track) => track.stop());
-      this.audioStream = null;  // Clear the audio stream
+      this.audioStream = null; // Clear the audio stream
     }
-  
+
     // set connected state to false to prevent automatic reconnect
     this.getStore().setState({ connected: false });
 
@@ -335,8 +336,8 @@ class HumeService {
   ): Promise<void> {
     /* place logic here which you would like to invoke when receiving a message through the socket */
     console.log(message);
-      // Validate the message structure
-    
+    // Validate the message structure
+
     // handle messages received through the WebSocket (messages are distinguished by their "type" field.)
     switch (message.type) {
       // save chat_group_id to resume chat if disconnected
@@ -405,116 +406,131 @@ class HumeService {
    * @param content transcript of the audio
    * @param topThreeEmotions the top three emotion prediction scores for the message
    */
-  
-    // Function to append the message to the UI with emotion scores
-    private appendMessage(
-      role: Hume.empathicVoice.Role,
-      content: string,
-      topThreeEmotions: { emotion: string; score: any }[]
-    ): void {
-      // generate chat card component with message content and emotion scores
-      const chatCard = new ChatCard({
-        role,
-        timestamp: new Date().toLocaleTimeString(),
-        content,
-        scores: topThreeEmotions,
-      });
-  
-      // append chat card to the UI
-      const chat = document.querySelector<HTMLDivElement>("div#chat");
-      chat?.appendChild(chatCard.render());
-  
-      // scroll to the bottom to view most recently added message
-      if (chat) chat.scrollTop = chat.scrollHeight;
-    }
-  
-    // Function to extract the top 3 emotions from a message
-    private extractTopThreeEmotions(
-      message:
-        | Hume.empathicVoice.UserMessage
-        | Hume.empathicVoice.AssistantMessage
-    ): { emotion: string; score: string }[] {
-      // extract emotion scores from the message
-      const scores = message.models.prosody?.scores;
-  
-      // convert the emotions object into an array of key-value pairs
-      const scoresArray = Object.entries(scores || {});
-  
-      // sort the array by the values in descending order
-      scoresArray.sort((a, b) => b[1] - a[1]);
-  
-      // extract the top three emotions and convert them back to an object
-      const topThreeEmotions = scoresArray
-        .slice(0, 3)
-        .map(([emotion, score]) => ({
-          emotion,
-          score: (Math.round(Number(score) * 100) / 100).toFixed(2),
-        }));
-  
-      return topThreeEmotions;
-    }
-  }
-    /**
-   * The code below does not pertain to the EVI implementation, and only serves to style the UI.
-   */
 
-  interface Score {
-    emotion: string;
-    score: string;
+  // Function to append the message to the UI with emotion scores
+  private appendMessage(
+    role: Hume.empathicVoice.Role,
+    content: string,
+    topThreeEmotions: { emotion: string; score: any }[]
+  ): void {
+    // generate chat card component with message content and emotion scores
+    const chatCard = new ChatCard({
+      role,
+      timestamp: new Date().toLocaleTimeString(),
+      content,
+      scores: topThreeEmotions,
+    });
+
+    // append chat card to the UI
+    const chat = document.querySelector<HTMLDivElement>("div#chat");
+    chat?.appendChild(chatCard.render());
+
+    // scroll to the bottom to view most recently added message
+    if (chat) chat.scrollTop = chat.scrollHeight;
   }
 
-  interface ChatMessage {
-    role: Hume.empathicVoice.Role;
-    timestamp: string;
-    content: string;
-    scores: Score[];
+  // Function to extract the top 3 emotions from a message
+  private extractTopThreeEmotions(
+    message:
+      | Hume.empathicVoice.UserMessage
+      | Hume.empathicVoice.AssistantMessage
+  ): { emotion: string; score: string }[] {
+    // extract emotion scores from the message
+    const scores = message.models.prosody?.scores;
+
+    // convert the emotions object into an array of key-value pairs
+    const scoresArray = Object.entries(scores || {});
+
+    // sort the array by the values in descending order
+    scoresArray.sort((a, b) => b[1] - a[1]);
+
+    // extract the top three emotions and convert them back to an object
+    const topThreeEmotions = scoresArray
+      .slice(0, 3)
+      .map(([emotion, score]) => ({
+        emotion,
+        score: (Math.round(Number(score) * 100) / 100).toFixed(2),
+      }));
+
+    return topThreeEmotions;
   }
-  
-  class ChatCard {
-    public message: ChatMessage;
-  
-    constructor(message: ChatMessage) {
-      this.message = message;
-    }
-  
-    private createScoreItem(score: Score): HTMLElement {
-      const scoreItem = document.createElement('div');
-      scoreItem.className = 'score-item';
-      scoreItem.innerHTML = `${score.emotion}: <strong>${score.score}</strong>`;
-      return scoreItem;
-    }
-  
-    public render(): HTMLElement {
-      const card = document.createElement('div');
-      card.className = `chat-card ${this.message.role}`;
-  
-      const role = document.createElement('div');
-      role.className = 'role';
-      role.textContent =
-        this.message.role.charAt(0).toUpperCase() + this.message.role.slice(1);
-  
-      const timestamp = document.createElement('div');
-      timestamp.className = 'timestamp';
-      timestamp.innerHTML = `<strong>${this.message.timestamp}</strong>`;
-  
-      const content = document.createElement('div');
-      content.className = 'content';
-      content.textContent = this.message.content;
-  
-      const scores = document.createElement('div');
-      scores.className = 'scores';
-      this.message.scores.forEach((score) => {
-        scores.appendChild(this.createScoreItem(score));
-      });
-  
-      card.appendChild(role);
-      card.appendChild(timestamp);
-      card.appendChild(content);
-      card.appendChild(scores);
-  
-      return card;
-    }
+}
+/**
+ * The code below does not pertain to the EVI implementation, and only serves to style the UI.
+ */
+
+interface Score {
+  emotion: string;
+  score: string;
+}
+
+interface ChatMessage {
+  role: Hume.empathicVoice.Role;
+  timestamp: string;
+  content: string;
+  scores: Score[];
+}
+
+class ChatCard {
+  public message: ChatMessage;
+
+  constructor(message: ChatMessage) {
+    this.message = message;
   }
-  
-  export const humeService = HumeService.getInstance();
-  
+
+  private createScoreItem(score: Score): HTMLElement {
+    const scoreItem = document.createElement("div");
+    scoreItem.className = "score-item";
+    scoreItem.innerHTML = `${score.emotion}: <strong>${score.score}</strong>`;
+    return scoreItem;
+  }
+
+  public render(): HTMLElement {
+    const card = document.createElement("div");
+    card.className = `chat-card ${this.message.role}`;
+    console.log(`role: :${this.message.role}`);
+
+    // Create message header
+    const messageHeader = document.createElement("div");
+    messageHeader.className = "message-header";
+
+    const role = document.createElement("div");
+    role.className = "role";
+    role.textContent =
+      this.message.role.charAt(0).toUpperCase() + this.message.role.slice(1);
+
+    const timestamp = document.createElement("div");
+    timestamp.className = "timestamp";
+    timestamp.innerHTML = `<strong>${this.message.timestamp}</strong>`;
+
+    // Add role and timestamp to header
+    messageHeader.appendChild(role);
+    messageHeader.appendChild(timestamp);
+
+    // Create message body
+    const messageBody = document.createElement("div");
+    messageBody.className = "message-body";
+
+    const content = document.createElement("div");
+    content.className = "content";
+    content.textContent = this.message.content;
+
+    // Add content to message body
+    messageBody.appendChild(content);
+
+    const scores = document.createElement("div");
+    scores.className = "scores";
+    this.message.scores.forEach((score) => {
+      scores.appendChild(this.createScoreItem(score));
+    });
+
+    // Append all elements to card
+    card.appendChild(messageHeader);
+    card.appendChild(messageBody);
+    card.appendChild(scores);
+
+    return card;
+  }
+}
+
+export const humeService = HumeService.getInstance();

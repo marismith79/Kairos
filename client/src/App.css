@@ -5,6 +5,10 @@
   background-color: #fef3e6;
 }
 
+.body {
+  background-color: red;
+}
+
 .page-header {
   font-family: nanummyeongjo;
   font-weight: bold;
@@ -115,7 +119,6 @@
   width: 100%;
   text-align: right;
   align-items: right;
-
 }
 
 button {
@@ -143,11 +146,69 @@ button:focus {
 }
 
 
+
+
+/************************************************************* STYLES FOR CHAT MESSGAES *************************************************************/
 .chat-container {
   display: flex;
+  justify-content: center;  /* Centers horizontally */
+  align-items: center;      /* Centers vertically */
+  width: 66.67%;          /* Keeps your existing width */
+  margin: 0 auto;         /* Centers the container itself */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);  /* Perfect centering */
+  overflow-y: auto;
+}
+
+#chat {
+  display: flex;
+  flex-direction: column;
+  flex: 3;
+}
+
+.controls {
+  display: flex;
+  flex: 1;
+  min-width: 0;  /* Add this to prevent expansion */
+}
+
+.chat-card {
+  margin: 10px;
+  border-radius: 15px;
+  padding: 20px;
+  width: 66.67%;  
+}
+
+.message-header {
+  display: flex;
   flex-direction: row;
-  width: 66.67%; /* This makes it take up 2/3 of the parent width */
-  margin: 10vw;
+  justify-content: space-between;
+}
+
+.chat-card.user {
+  background-color: #A5FFE4;
+  align-self: flex-end;
+
+}
+
+.chat-card.assistant {
+  background-color: #FFE2A5;
+  align-self: flex-start;
+
+}
+
+.messag-body {
+  margin: 5px;
+  border-radius: 15px;
+  padding: 20px;
+}
+
+.scores {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
 .logger-container {
@@ -172,7 +233,7 @@ button:focus {
 
 
 /* Style for individual messages */
-.message {
+/* .message {
   background-color: #f1f1f1;
   padding: 10px 15px;
   border-radius: 15px;
@@ -180,9 +241,9 @@ button:focus {
   word-wrap: break-word;
   font-size: 14px;
   line-height: 1.5;
-}
+} */
 
-.message.user {
+/* .message.user {
   background-color: #e1f5fe;
   font-size: large;
   align-self: flex-end;
@@ -190,25 +251,25 @@ button:focus {
 
 .message.assistant {
   background-color: #ffe1ffda; /* Light yellow for assistant messages */
-  font-size: large;
+  /* font-size: large;
   align-self: flex-start;
-}
+} */ 
 
 /* For message text */
-.message .role {
+/* .message .role {
   font-weight: bold;
   font-size: 20px;
 }
 
 .message .content {
   margin-top: 5px;
-}
+} */
 
-/* Scrollable container */
+/* Scrollable container
 .message-container {
   overflow-y: auto;
   padding: 0 15px;
-}
+} */
 
 /* Add this to your App.css */
 .glimmer-text {

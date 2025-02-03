@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { humeService } from "../humeService"; 
-import ChatCard from "../components/ChatCard"; 
+// import ChatCard from "../components/ChatCard"; 
 import Controls from "../components/Controls";
 import StartCall from "../components/StartCall";
 
@@ -30,12 +30,12 @@ export default function Chat() {
   return (
     <div className="chat-container">
       <div id="chat">
-        {messages.map((message, index) => (
+        {/* {messages.map((message, index) => (
           <ChatCard key={index} message={message} />
-        ))}
+        ))} */}
       </div>
       <Controls onEndCall={handleEndCall} />
-      <StartCall />
+      {/* <StartCall /> */}
     </div>
   );
 }
