@@ -10,7 +10,7 @@ export default function About() {
   return (
     <div className="section-container">
       <section className="section-card">
-        <h1 className="page-header">About Us</h1>
+        <h1 className="page-header">About</h1>
         <p className="page-content">
           Kairos enables crisis care counselors to do what they do best–be a comforting voice to individuals in crisis. We're building real-time voice AI analytics into crisis calls to reduce counselor burnout and improve call quality.
         </p>

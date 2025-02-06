@@ -5,17 +5,13 @@
   background-color: #fef3e6;
 }
 
-.body {
-  background-color: red;
-}
-
 .page-header {
   font-family: nanummyeongjo;
   font-weight: bold;
   margin-top: 0%;
   display: flex;
   flex-direction: column;
-  text-align: left;
+  text-align: center;
   justify-content: center;
   min-height: 10vh;
   font-size: calc(10px + 2.5vmin);
@@ -24,9 +20,11 @@
 
 .page-content {
   font-family: nanummyeongjo;
+  margin-right: 90px;
+  margin-left: 90px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  text-align: center;
   justify-content: center;
   font-size: calc(7px + 2vmin);
   position: relative;
@@ -44,6 +42,7 @@
 
 .company-name {
   text-decoration: none;
+  /* padding-bottom: 0vh; */
   color: black;
 }
 .App-logo {
@@ -89,7 +88,7 @@
   background-color: #5EC184;
   display: flex;
   width: 100%;
-  justify-content: space-between;
+  justify-content: center; /* Center the content horizontally */
   border-bottom: 0.5px solid #000; /* Add this line for a thin bottom border */
 }
 
@@ -100,10 +99,13 @@
   padding: 0 7%;
   font-weight: 1000;
   flex-direction: row;
-  text-align: left;
   font-size: calc(10px + 2vmin);
   color: rgb(33, 5, 5);
   justify-content: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 10vh;
 }
 
 .Header2 {
@@ -125,7 +127,7 @@
   align-items: right;
 }
 
-button {
+button{
   font-size: calc(10px + 2vmin);
   font-family: nanummyeongjo;
   font-weight: bold;
@@ -139,30 +141,63 @@ button {
   transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
-button:active {
+button:active{
   /* border-bottom: 2px solid #000000; */
   transform: scale(1);
 }
 
-button:focus {
+button:focus{
   outline: none;
   /* border-bottom: 2px solid #000000; */
 }
 
-
-
-
 /************************************************************* STYLES FOR CHAT MESSGAES *************************************************************/
 .chat-container {
+  background-color: #fefefe;
   display: flex;
   justify-content: center;  /* Centers horizontally */
   align-items: center;      /* Centers vertically */
   width: 66.67%;          /* Keeps your existing width */
   margin: 0 auto;         /* Centers the container itself */
   position: absolute;
+  border: 0.5px solid #000; /* 1px border */
+  height: 70vh;           /* Static height */
+  width: 80vh;
   top: 50%;
-  left: 50%;
+  left: 35%;
   transform: translate(-50%, -50%);  /* Perfect centering */
+}
+
+.analytics-container {
+  background-color: rgb(255, 221, 255);
+  display: flex;
+  margin-top: 10vh;
+  margin-bottom: 10vh;
+  height: 80vh; /* Assuming the header height is 10vh */
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 30%;  /* Adjust the width as needed */
+  margin-left: 20px;  /* Space between chat and analytics container */
+  padding: 20px;
+  border-radius: 8px;
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+}
+
+.controls {
+  margin-top: auto;
+  padding: 0px;
+  background-color: red;
+  display: inline-block;
+  border: 1px solid black;
+  border-radius: 15px;
+  position: relative;
+  min-width: 0;
+  cursor: pointer;
+  text-align: center;
 }
 
 #chat {
@@ -172,13 +207,6 @@ button:focus {
   overflow-y: auto;
   max-height: 66vh;     /* Limit height to 80% of viewport height */
 }
-
-.controls {
-  display: flex;
-  flex: 1;
-  min-width: 0;  /* Add this to prevent expansion */
-}
-
 .chat-card {
   margin: 10px;
   border-radius: 15px;
@@ -271,11 +299,12 @@ button:focus {
 }
 
 .section-card {
-  /* background-color: rgba(94, 193, 132, 0.15);  */
   /* box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.1); */
-  padding: 20px;
+  padding: 10px 105px 10px 105px;
+  /* padding-left: 40px; */
   /* margin: 50px;  */
   margin-bottom: 50px;
+  margin-top: 50px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   border-top: 0.5px solid #000; 
   border-bottom: 0.5px solid #000; 

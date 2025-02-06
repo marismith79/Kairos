@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { humeService } from "../humeService"; 
 // import ChatCard from "../components/ChatCard"; 
 import Controls from "../components/Controls";
-import StartCall from "../components/StartCall";
+// import StartCall from "../components/StartCall";
 
 export default function Chat() {
   const [messages, setMessages] = useState<any[]>([]);
@@ -28,14 +28,19 @@ export default function Chat() {
   }, []);
 
   return (
+   <div>
     <div className="chat-container">
       <div id="chat">
         {/* {messages.map((message, index) => (
           <ChatCard key={index} message={message} />
         ))} */}
       </div>
+    </div>
+    <div className="analytics-container">
+      <p> this is a filler</p>
       <Controls onEndCall={handleEndCall} />
       {/* <StartCall /> */}
     </div>
+  </div> 
   );
 }

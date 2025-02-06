@@ -30,7 +30,7 @@ export default function Controls({ onEndCall }: ControlsProps) {
           initial={{ y: "100%", opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: "100%", opacity: 0 }}
-          className={"p-4 bg-card border border-border rounded-lg shadow-sm flex items-center gap-4"}
+          className={"p-4 bg-card border border-border rounded-lg shadow-sm flex items-center "}
         >
           {/* <Toggle pressed={!isMuted} onPressedChange={() => (isMuted ? unmute() : mute())}>
             {isMuted ? <MicOff className={"size-4"} /> : <Mic className={"size-4"} />}
@@ -41,7 +41,7 @@ export default function Controls({ onEndCall }: ControlsProps) {
           </div> */}
 
           <Button
-            className={"flex items-center gap-1"}
+            className={"flex items-center"}
             onClick={() => {
               disconnect();  // Disconnect the call
               onEndCall();   // Call the provided onEndCall handler
@@ -49,7 +49,7 @@ export default function Controls({ onEndCall }: ControlsProps) {
             variant={"destructive"}
           >
             <span>
-              <Phone className={"size-4 opacity-50"} strokeWidth={2} stroke={"currentColor"} />
+              <Phone className={"size-5 opacity-50"} strokeWidth={2} stroke={"currentColor"} />
             </span>
             <span>End Call</span>
           </Button>

@@ -6,17 +6,12 @@ export function Header() {
   return (
     <header className="header-container" >
       <div className="Header1">
-        <Link href="/home" className="company-name glimmer-text">
-          <p>Kairos</p>
+        <Link href="/" className="company-name glimmer-text justify-content">
+          <h2>Kairos</h2>
         </Link>
       </div>
       <div className="Header2">
         <nav className="nav">
-        <Link href="/home">
-            <Button>
-              Home
-            </Button>
-          </Link>
           <Link href="/about">
             <Button>
               About
