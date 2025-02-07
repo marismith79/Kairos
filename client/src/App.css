@@ -152,39 +152,59 @@ button:focus{
 }
 
 /************************************************************* STYLES FOR CHAT MESSGAES *************************************************************/
+/* Invisible container holding chat, analytics, and sentiment */
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%; 
+  margin-top: 10px;
+  position: relative;
+}
+
+/* Ensure chat-container and analytics-container are the same height */
+.chat-container, .analytics-container{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 50vh; 
+  margin-top: 1vh;
+  margin-bottom: 1vh;
+  border-radius: 21px;
+  border: 0.5px solid #8f8f8f;
+}
+
+/* Styling for sentiment-container */
+.sentiment-container {
+  background-color: #f0f0f0;
+  padding: 2vh;
+  margin-top: 5vh;
+  margin-left: 20vh;
+  margin-right: 20vh;
+  height: 20vh;
+  border: 1px solid #8f8f8f;
+  border-radius: 21px;
+}
+
 .chat-container {
   background-color: #fefefe;
+  margin-left: 20vh; 
   display: flex;
-  justify-content: center;  /* Centers horizontally */
-  align-items: center;      /* Centers vertically */
-  width: 66.67%;          /* Keeps your existing width */
-  margin: 0 auto;         /* Centers the container itself */
-  position: absolute;
-  border: 0.5px solid #000; /* 1px border */
-  height: 70vh;           /* Static height */
-  width: 80vh;
-  top: 50%;
-  left: 35%;
-  transform: translate(-50%, -50%);  /* Perfect centering */
-}
+  position: relative;
+  justify-content: center;  
+  align-items: center;            
+  width: 120vh;
+} 
 
 .analytics-container {
   background-color: rgb(255, 221, 255);
+  margin-right: 20vh;
+  width: 25vh;
   display: flex;
-  margin-top: 10vh;
-  margin-bottom: 10vh;
-  height: 80vh; /* Assuming the header height is 10vh */
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  width: 30%;  /* Adjust the width as needed */
-  margin-left: 20px;  /* Space between chat and analytics container */
-  padding: 20px;
-  border-radius: 8px;
   position: absolute;
-  top: 50%;
   right: 0;
-  transform: translateY(-50%);
 }
 
 .controls {

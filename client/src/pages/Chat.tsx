@@ -28,18 +28,22 @@ export default function Chat() {
   }, []);
 
   return (
-   <div>
+   <div className="container">
     <div className="chat-container">
       <div id="chat">
+        <p> Chat </p>
         {/* {messages.map((message, index) => (
           <ChatCard key={index} message={message} />
         ))} */}
       </div>
     </div>
     <div className="analytics-container">
-      <p> this is a filler</p>
+      <p> Demo </p>
       <Controls onEndCall={handleEndCall} />
-      {/* <StartCall /> */}
+    </div>
+    <div className="sentiment-container">
+          {/* Add content for sentiment analysis here */}
+      <p>Sentiment Analysis </p>
     </div>
   </div> 
   );
