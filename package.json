@@ -1,14 +1,23 @@
 {
+  "type": "module",
   "scripts": {
-    "install": "npm install --prefix server && npm install --prefix client",
-    "build": "npm run build --prefix client && tsc --project server/tsconfig.json",
-    "start": "node dist/server.js",
-    "dev:client": "cd client && npm run build -- --watch",
-    "build:server": "tsc --project server/tsconfig.json --watch",
-    "dev": "concurrently \"npm run dev:client\" \"npm run build:server\" \"node-dev --watch dist/index.html dist/index.js\"",
-    "deploy": " zip -r app.zip . && az webapp deployment source config-zip  --resource-group PrevilonHealth-eus  --name previlonhealth  --src app.zip"
+    "preinstall": " pwd && npm install -g typescript",
+    "dev": "concurrently \"cd ./server && npm run dev\" \"cd ./client && npm run dev\"",
+    "start": "npm run build && cd server && npm start",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "cd client && npm install && npm run build",
+    "build:server": "cd server && npm install && npm run build",
+    "deploy": " zip -r app.zip . && az webapp deploy --resource-group PrevilonHealth-eus --name previlonhealth   -s kairos --src-path ./app.zip --type zip --async true"
+  },
+  "dependencies": {
+    "concurrently": "^9.1.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^3.4.17",
+    "typeface-nanum-myeongjo": "^1.1.13",
+    "typescript": "^5.7.3"
   },
   "devDependencies": {
-    "typescript": "^5.7.3"
+    "@types/node": "^22.10.7"
   }
 }

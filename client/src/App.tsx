@@ -1,30 +1,35 @@
-import * as React from "react"
+import './index.css'
+import axios from "axios";
+import { useState, CSSProperties } from "react";
 import { Route, Switch } from "wouter";
-import Home from "../src/pages/About";
-// import React, { useEffect, useState } from 'react';
-import { Footer } from "./components/Footer";
-import "react-toastify/dist/ReactToastify.css";
-// import Profile from "./pages/Profile";
+import About from "./pages/About";
 import Chat from "./pages/Chat";
-
-import Search from "./pages/Facilities";
+import { Header } from "./components/Header";
+import { Body } from "./pages/Home";
 
 function App() {
+  const [data, setData] = useState();
+  const urlWithProxy = "/api/v1";
+
+  function getDataFromServer() {
+    axios
+      .get(urlWithProxy)
+      .then((res) => setData(res.data))
+      .catch((err) => {
+        console.error(err);
+      });
+  }
 
   return (
-      <div className="min-h-screen flex flex-col bg-[#fef3e6]">
-        <p className="text-xl font-bold text-red-800 underline">
-          Tailwind css stuff
-        </p>
+    <div>
+      <Header />
       <Switch>
-        <div className="flex-grow">
-        <Route path="/about" component={Home} />
+        <Route path="/about" component={About} />
         <Route path="/chat" component={Chat} />
-        <Route path="/facilities" component={Search} />
-        </div>
+        <Route path="/" component={Body} />
       </Switch>
-      <Footer />
     </div>
-);}
+  );
+}
 
 export default App;

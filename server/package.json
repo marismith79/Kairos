@@ -1,22 +1,29 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "main": "src/server.js",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./dist/server.js",
+    "dev": "nodemon ./src/server.ts",
+    "build": "pwd && ./node_modules/typescript/bin/tsc -p ."
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "express": "^4.21.2"
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.17.3",
+    "hume": "^0.9.10",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.7.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
-    "nodemon": "^3.1.9",
-    "typescript": "^5.7.3"
+    "@types/express": "^4.17.13",
+    "@types/node": "^17.0.23"
   }
 }

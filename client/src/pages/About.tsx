@@ -1,59 +1,54 @@
+import "../App.css"
+import TeamMember from "../components/TeamMember";
+import image1 from "../shomari.jpeg"
+import image2 from "../alejandro.jpeg"
 
-import * as React from "react"
+const link1 = "https://www.linkedin.com/in/shomari-c-smith/"
+const link2 = "https://www.linkedin.com/in/alejandro-rojas-076a55242/"
 
 export default function About() {
   return (
-    <div className="container mx-auto px-4 py-12 max-w-5xl">
-      <section className="space-y-4 mb-12">
-        <h1 className="text-4xl font-bold">About Us</h1>
-        <p className="text-lg text-muted-foreground">
-          We are committed to connecting individuals with mental health and substance abuse resources in their local communities.
+    <div className="section-container">
+      <section className="section-card">
+        <h1 className="page-header">About</h1>
+        <p className="page-content">
+          Kairos enables crisis care counselors to do what they do best–be a comforting voice to individuals in crisis. We're building real-time voice AI analytics into crisis calls to reduce counselor burnout and improve call quality.
         </p>
       </section>
 
-      <section className="space-y-6 mb-12">
-        <h2 className="text-2xl font-semibold">Our Mission</h2>
-        <p className="text-muted-foreground">
-          Our mission is to break down barriers to mental health and substance abuse treatment by providing easy access to nearby facilities and resources.
+      <section className="section-card">
+        <h2 className="page-header">Mission</h2>
+        <p className="page-content">
+          Our founders have seen first-hand how important every second is in crisis scenarios. We're building to make those seconds count and improve crisis care continuum pathways across the nation. 
         </p>
       </section>
 
-      <section className="space-y-6 mb-12">
-        <h2 className="text-2xl font-semibold">Our Values</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-4 border rounded-lg">
-            <h3 className="font-medium mb-2">Accessibility</h3>
-            <p className="text-sm text-muted-foreground">Making mental health resources available to everyone</p>
-          </div>
-          <div className="p-4 border rounded-lg">
-            <h3 className="font-medium mb-2">Compassion</h3>
-            <p className="text-sm text-muted-foreground">Supporting individuals with empathy and understanding</p>
-          </div>
-          <div className="p-4 border rounded-lg">
-            <h3 className="font-medium mb-2">Innovation</h3>
-            <p className="text-sm text-muted-foreground">Using technology to improve access to care</p>
-          </div>
+      <section className="section-card">
+        <h2 className="page-header">Team</h2>
+        <div className="team-container">
+            <TeamMember
+              name="Shomari C. Smith"
+              role="Founder"
+              image={image1}
+              link={link1}
+            />
+            <TeamMember
+              name="Alejandro Rojas"
+              role="Founder"
+              image={image2}
+              link={link2}
+            />
         </div>
       </section>
-
-      <section className="space-y-6">
-        <h2 className="text-2xl font-semibold">Our Partners</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+      <div>
           Partner logo placeholders
-          <div className="aspect-square bg-muted rounded-lg flex items-center justify-center">
-            <span className="text-sm text-muted-foreground">Partner Logo</span>
+          <div>
+            <span>Partner Logo</span>
           </div>
-          <div className="aspect-square bg-muted rounded-lg flex items-center justify-center">
-            <span className="text-sm text-muted-foreground">Partner Logo</span>
-          </div>
-          <div className="aspect-square bg-muted rounded-lg flex items-center justify-center">
-            <span className="text-sm text-muted-foreground">Partner Logo</span>
-          </div>
-          <div className="aspect-square bg-muted rounded-lg flex items-center justify-center">
-            <span className="text-sm text-muted-foreground">Partner Logo</span>
+          <div>
+            <span>Partner Logo</span>
           </div>
         </div>
-      </section>
     </div>
   );
 }

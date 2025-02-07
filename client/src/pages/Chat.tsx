@@ -1,68 +1,50 @@
-import * as React from "react"
-import { useEffect, useRef, useState, ComponentRef } from "react";
-import { VoiceProvider } from "@humeai/voice-react";
-import Messages from "../components/Messages";
-import Controls from "../components//Controls";
-import StartCall from "../components/StartCall";
-
-import { getHumeAccessToken } from "../humeAuth";
-const apiKey = 'ocPhYbHTfeKulrbozQyjtW4SAvKEXdk9FtfoSY6Plz8ZJXtH'
+import { useEffect, useState } from "react";
+import { humeService } from "../humeService"; 
+// import ChatCard from "../components/ChatCard"; 
+import Controls from "../components/Controls";
+// import StartCall from "../components/StartCall";
 
 export default function Chat() {
+  const [messages, setMessages] = useState<any[]>([]);
 
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  
+  const handleEndCall = () => {
+    console.log("Call ended");
+    humeService.disconnect();  // Disconnect when ending the call
+  };
+
+    // Subscribe to messages from HumeService
+  const messageListener = (message: any) => {
+    setMessages((prevMessages) => [...prevMessages, message]);
+  };
+
   useEffect(() => {
-    const fetchAccessToken = async () => {
-      try {
-        const token = await getHumeAccessToken();
-        setAccessToken(token);
-      } catch (error) {
-        console.error("Error fetching access token:", error);
-      }
+    // Add the message listener when component mounts
+    humeService.addMessageListener(messageListener);
+
+    // Cleanup listener when component unmounts
+    return () => {
+      humeService.removeMessageListener(messageListener);
     };
-    fetchAccessToken();
   }, []);
 
-  const timeout = useRef<NodeJS.Timeout | null>(null);
-  const ref = useRef<ComponentRef<typeof Messages> | null>(null);
-
-  // Show a loader while fetching the token
-  if (!accessToken) {
-    return <div>Loading...</div>;
-  }
-
-  console.log(accessToken)
-
   return (
-    <div
-      className={
-        "relative grow flex flex-col mx-auto w-full overflow-hidden h-[0px]"
-      }
-    >
-      <VoiceProvider
-        auth={{ type: "apiKey", value: apiKey }}
-        onMessage={() => {
-          if (timeout.current) {
-            clearTimeout(timeout.current);
-          }
-
-          timeout.current = setTimeout(() => {
-            if (ref.current) {
-              const scrollHeight = ref.current.scrollHeight;
-
-              ref.current.scrollTo({
-                top: scrollHeight,
-                behavior: "smooth",
-              });
-            }
-          }, 200);
-        }}
-      >
-        <Messages ref={ref} />
-        <Controls />
-        <StartCall />
-      </VoiceProvider>
+   <div className="container">
+    <div className="chat-container">
+      <div id="chat">
+        <p> Chat </p>
+        {/* {messages.map((message, index) => (
+          <ChatCard key={index} message={message} />
+        ))} */}
+      </div>
     </div>
+    <div className="analytics-container">
+      <p> Demo </p>
+      <Controls onEndCall={handleEndCall} />
+    </div>
+    <div className="sentiment-container">
+          {/* Add content for sentiment analysis here */}
+      <p>Sentiment Analysis </p>
+    </div>
+  </div> 
   );
 }

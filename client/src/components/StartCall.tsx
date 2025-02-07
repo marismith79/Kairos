@@ -1,21 +1,21 @@
-
-import * as React from "react"
-import { useVoice } from "@humeai/voice-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "./ui/button";
 import { Phone } from "lucide-react";
+import { useHume } from '../hooks/useHume';
+
 
 export default function StartCall() {
-  const { status, connect } = useVoice(); // Access voice connection status and connect function
 
+  const { 
+        connected, 
+        connect, 
+      } = useHume();
+
+  console.log("StartCall connected:", connected);
   return (
-    <AnimatePresence>
-      {/* Only show the start call button if not connected */}
-      {status.value !== "connected" ? (
+    <>
+      {connected !== true && (
         <motion.div
-          className={
-            "fixed inset-0 p-4 flex items-center justify-center bg-background"
-          }
           initial="initial"
           animate="enter"
           exit="exit"
@@ -25,36 +25,31 @@ export default function StartCall() {
             exit: { opacity: 0 },
           }}
         >
-          <AnimatePresence>
-            <motion.div
-              variants={{
-                initial: { scale: 0.5 },
-                enter: { scale: 1 },
-                exit: { scale: 0.5 },
+          <motion.div
+            variants={{
+              initial: { scale: 0.5 },
+              enter: { scale: 1 },
+              exit: { scale: 0.5 },
+            }}
+          >
+            <Button
+              onClick={() => {
+                console.log(connected);
+                connect()
+                  .then(() => console.log(connected))
+                  .catch((error) => console.error("Connection error:", error))
+                  .finally(() => console.log("Connection attempt finished", connected));
               }}
             >
-              <Button
-                className={"z-50 flex items-center gap-1.5"}
-                onClick={() => {
-                  connect()
-                    .then(() => console.log("Connected"))
-                    .catch((error) => console.error("Connection error:", error))
-                    .finally(() => console.log("Connection attempt finished"));
-                }}
-              >
-                <span>
-                  <Phone
-                    className={"size-4 opacity-50"}
-                    strokeWidth={2}
-                    stroke={"currentColor"}
-                  />
-                </span>
-                <span>Start Call</span>
-              </Button>
-            </motion.div>
-          </AnimatePresence>
+              <span>
+                <Phone strokeWidth={2} stroke={"currentColor"} />
+              </span>
+              <span>Start Call</span>
+            </Button>
+          </motion.div>
         </motion.div>
-      ) : null}
-    </AnimatePresence>
+      )}
+    </>
   );
 }
+

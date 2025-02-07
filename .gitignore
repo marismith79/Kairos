@@ -4,3 +4,5 @@ client/node_modules
 client/dist
 server/dist
 server/.env
+app.zip
+.env
