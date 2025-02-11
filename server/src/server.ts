@@ -83,6 +83,4 @@ app.get("*", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}, env port is ${process.env.PORT}`);
-  console.log("Hume API Key:", process.env.HUME_API_KEY);
-  console.log("Hume Secret Key:", process.env.HUME_SECRET_KEY);
 });

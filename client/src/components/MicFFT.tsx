@@ -1,4 +1,4 @@
-import { cn } from "../utils/index";
+import { cn } from "../lib/utils";
 import { motion } from "framer-motion";
 import { AutoSizer } from "react-virtualized";
 

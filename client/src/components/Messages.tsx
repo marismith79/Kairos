@@ -1,10 +1,7 @@
 import { cn } from "../lib/utils";
 import { motion } from "framer-motion";
 import { ComponentRef, forwardRef } from "react";
-import { useEffect, useState } from "react";
-import Expressions from "./Expressions";
 
-// Accept messages as props
 const Messages = forwardRef<ComponentRef<typeof motion.div>, { messages: any[] }>(function Messages({ messages }, ref) {
   return (
     <motion.div className="message-container" ref={ref}>

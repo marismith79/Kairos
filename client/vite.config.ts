@@ -4,6 +4,11 @@ import * as dotenv from 'dotenv';
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      ws: 'isomorphic-ws'
+    },
+  },
   build: {
     target: "ESNEXT",
     outDir: 'dist',

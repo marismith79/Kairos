@@ -1,6 +1,6 @@
 import './index.css'
 import axios from "axios";
-import { useState, CSSProperties } from "react";
+import { useState } from "react";
 import { Route, Switch } from "wouter";
 import About from "./pages/About";
 import Chat from "./pages/Chat";
