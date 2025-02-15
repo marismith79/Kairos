@@ -1,5 +1,7 @@
 <h2>Motivation</h2>
- Setup typescript react vite project to work with a server (typescript express in this repo) using proxy 
+ Setup typescript react vite project to work with a server (typescript express in this repo) using proxy.
+ 
+ More generally, this current interface is a landing point for any demos. The product that we sell will be completely different.
 
 <h2>Schema</h2>
 
