@@ -5,4 +5,3 @@ client/dist
 server/dist
 server/.env
 app.zip
-.env
