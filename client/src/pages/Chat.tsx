@@ -2,14 +2,14 @@
 import { useState } from "react";
 import { humeService } from "../humeServiceSenti";
 import Controls from "../components/Controls";
-import SentimentChart from "./components/SentimentChart";
+import SentimentChart from "../components/SentimentChart";
 import { StreamModelPredictionsLanguagePredictionsItem } from "../tools/models";
 
 export default function Chat() {
   const [isConnected, setIsConnected] = useState(false);
   const [predictions, setPredictions] = useState<StreamModelPredictionsLanguagePredictionsItem[]>([]);
 
-  const apiKey = process.env.apikey || ""; // Replace with actual
+  const apiKey = "ocPhYbHTfeKulrbozQyjtW4SAvKEXdk9FtfoSY6Plz8ZJXtH"; // Replace with actual
 
   const handleStartCall = async () => {
     try {
@@ -33,6 +33,9 @@ export default function Chat() {
 
   return (
     <div className="container">
+      <div className="chat-container">
+        <div>Some chat stuff</div>
+      </div>
       <div className="analytics-container">
         <h3>Controls</h3>
         {!isConnected ? (
