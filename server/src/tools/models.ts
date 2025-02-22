@@ -1,11 +1,9 @@
-// models.ts
-
 export interface StreamModelPredictionsLanguage {
     predictions?: StreamModelPredictionsLanguagePredictionsItem[];
   }
   
   export interface StreamModelPredictionsLanguagePredictionsItem {
-    text?: string; // a segment of text (e.g., word or sentence)
+    text?: string;
     position?: TextPosition;
     emotions?: EmotionEmbedding;
     sentiment?: Sentiment;

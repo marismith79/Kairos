@@ -19,7 +19,7 @@ export default function About() {
       <section className="section-card">
         <h2 className="page-header">Mission</h2>
         <p className="page-content">
-          Our founders have seen first-hand how important every second is in crisis scenarios. We're building to make those seconds count and improve crisis care continuum pathways across the nation. 
+        Our founders have seen first-hand how important every second is in crisis scenarios. We’re on a mission to make crisis care navigation as quick and seamless as possible. We're aiming to improve every second of a crisis call and improve pathways in the care continuum nationwide. 
         </p>
       </section>
 
