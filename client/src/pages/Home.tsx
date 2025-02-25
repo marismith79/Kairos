@@ -1,5 +1,5 @@
 import "../App.css";
-import logo from "../logo.png"; 
+import logo from "../utils/logo.png"; 
 import About from "./About";
 
 export function Body() {

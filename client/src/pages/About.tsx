@@ -1,7 +1,7 @@
 import "../App.css"
 import TeamMember from "../components/TeamMember";
-import image1 from "../shomari.jpeg"
-import image2 from "../alejandro.jpeg"
+import image1 from "../utils/shomari.jpeg"
+import image2 from "../utils/alejandro.jpeg"
 
 const link1 = "https://www.linkedin.com/in/shomari-c-smith/"
 const link2 = "https://www.linkedin.com/in/alejandro-rojas-076a55242/"
@@ -27,7 +27,7 @@ export default function About() {
         <h2 className="page-header">Team</h2>
         <div className="team-container">
             <TeamMember
-              name="Shomari C. Smith"
+              name="Shomari Smith"
               role="Founder"
               image={image1}
               link={link1}

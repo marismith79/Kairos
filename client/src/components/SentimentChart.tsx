@@ -1,4 +1,3 @@
-// SentimentChart.tsx
 import React, { useEffect, useState } from "react";
 import io from "socket.io-client";
 import {
@@ -10,7 +9,6 @@ import {
   CartesianGrid,
 } from "recharts";
 
-// Define a local type for the sentiment update.
 interface SentimentUpdate {
   sentiment: {
     score: number;

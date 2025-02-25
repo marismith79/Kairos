@@ -284,12 +284,6 @@ button:focus{
   border-top: 1px solid transparent;  /* Add this line */
 }
 
- /* Scrollable container */
-.message-container {
-  overflow-y: auto;
-  padding: 0 15px;
-} 
-
 /* Add this to your App.css */
 .glimmer-text {
   position: relative;

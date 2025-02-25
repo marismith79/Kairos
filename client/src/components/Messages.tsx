@@ -1,3 +1,4 @@
+// THIS NEEDS TO BE REFACTORED TO TAKE IN THE TRANSCRIPT DATA FROM TWILIO SPEECH-TO-TEXT 
 import { cn } from "../lib/utils";
 import { motion } from "framer-motion";
 import { ComponentRef, forwardRef } from "react";
