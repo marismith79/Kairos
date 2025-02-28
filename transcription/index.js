@@ -82,6 +82,11 @@ wss.on('connection', (socket) => {
   });
 });
 
+app.get('/', (req, res) => {
+  res.send('Twilio Call Transcription Server is Running');
+});
+
+
 // --- Start the Server ---
 const PORT = 3000;
 server.listen(PORT, () => {
