@@ -15,7 +15,7 @@ app.post('/voice', (req, res) => {
   const twiml = `
 <Response>
   <Start>
-    <Stream url="wss://thin-brooms-study.loca.lt/twilio-stream"/>
+    <Stream url="https://b4a7-2600-4041-5b9a-fd00-34e6-6a81-ec6b-8a5d.ngrok-free.app/twilio-stream"/>
   </Start>
   <Say>Welcome to the real-time transcription service. Please speak.</Say>
   <Pause length="30"/>
