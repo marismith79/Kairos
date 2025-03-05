@@ -7,6 +7,7 @@ import { fetchAccessToken } from "hume";
 import cors from "cors";
 import { Server as SocketIOServer } from "socket.io";
 import http from "http";
+import { startTranscription } from "./transcription.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -88,6 +89,25 @@ const io = new SocketIOServer(server, {
 // Listen for new client connections.
 io.on('connection', (socket) => {
   console.log('New client connected');
+});
+
+//Handle Twilio call events Request
+startTranscription(server);
+
+app.get("/", (req, res) => res.send("Hello World"));
+
+app.post("/", (req, res) => {
+  res.set("Content-Type", "text/xml");
+
+  res.send(`
+    <Response>
+      <Start>
+        <Stream url="wss://${req.headers.host}/"/>
+      </Start>
+      <Say>I will stream the next 60 seconds of audio through your websocket</Say>
+      <Pause length="60" />
+    </Response>
+  `);
 });
 
 // Modify the sentiment endpoint to broadcast sentiment data.
