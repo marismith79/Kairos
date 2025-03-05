@@ -92,7 +92,7 @@ io.on('connection', (socket) => {
 });
 
 //Handle Twilio call events Request
-startTranscription(server);
+startTranscription(server, io);
 
 app.get("/", (req, res) => res.send("Hello World"));
 
@@ -120,30 +120,34 @@ app.post("/api/sentiment", (req: Request, res: Response) => {
   res.sendStatus(200);
 });
 
-// TESTING WITH EXAMPLE TEXT
-app.post("/api/processText", (req: Request, res: Response) => {
-  const { text } = req.body;
-  if (!text) {
-    return res.status(400).json({ error: "No text provided" });
-  }
-  // Use the backend service to send the text for processing.
-  humeSentiService.sendTextData(text);
-  res.sendStatus(200);
-});
-app.post("/api/connect", async (req: Request, res: Response) => {
-  const HUME_API_KEY = process.env.HUME_API_KEY;
-  if (!HUME_API_KEY) {
-    return res.status(500).json({ error: "HUME_API_KEY is not set" });
-  }
-  try {
-    await humeSentiService.connect(HUME_API_KEY, (predictions) => {
-      console.log("Received predictions:", predictions);
-    });
-    res.sendStatus(200);
-  } catch (error) {
-    console.error("Error connecting to Hume:", error);
-    res.status(500).json({ error: "Error connecting to Hume" });
-  }
+// // TESTING WITH EXAMPLE TEXT
+// app.post("/api/processText", (req: Request, res: Response) => {
+//   const { text } = req.body;
+//   if (!text) {
+//     return res.status(400).json({ error: "No text provided" });
+//   }
+//   // Use the backend service to send the text for processing.
+//   humeSentiService.sendTextData(text);
+//   res.sendStatus(200);
+// });
+// app.post("/api/connect", async (req: Request, res: Response) => {
+//   const HUME_API_KEY = process.env.HUME_API_KEY;
+//   if (!HUME_API_KEY) {
+//     return res.status(500).json({ error: "HUME_API_KEY is not set" });
+//   }
+//   try {
+//     await humeSentiService.connect(HUME_API_KEY, (predictions) => {
+//       console.log("Received predictions:", predictions);
+//     });
+//     res.sendStatus(200);
+//   } catch (error) {
+//     console.error("Error connecting to Hume:", error);
+//     res.status(500).json({ error: "Error connecting to Hume" });
+//   }
+// });
+
+humeSentiService.connect(process.env.HUME_API_KEY!, (predictions) => {
+  console.log("Received predictions from Hume:", predictions);
 });
 
 // Adjust index.html path based on environment
