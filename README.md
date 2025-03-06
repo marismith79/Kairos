@@ -46,6 +46,33 @@ Invoke from the root project to run the server and the client. This is done usin
 ```
 npm run dev
 ```
+<h2>Phone Calling</h2>
+The kairos.care.dev@gmail.com account will be used to sign into both Twilio and ngrok
+
+For ngrok set-up, run:
+
+```
+brew install ngrok
+
+ngrok config add-authtoken 2tx2jXYhsd4YROMzi9m4DupwdMu_5hWewv95tS46L6DLGJFU5
+```
+
+To start the https server, run:
+
+```
+ngrok http 3000
+```
+
+Copy the ngrok link that appears as a wrapper around http://localhost:3000
+
+For Twilio setup:
+
+
+Paste the endpoint link in Develop -> Phone Numbers -> Manage -> Active numbers -> Configure -> POST Url
+
+The above must be done every time the ngrok is restarted
+
+Phone Number: (949) 776-3549
 
 <h2>Limitation</h2>
 i was not able to map "/" because then localhost:3000/ is used

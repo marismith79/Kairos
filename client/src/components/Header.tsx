@@ -22,11 +22,6 @@ export function Header() {
               Chat
             </Button>
           </Link>
-          <Link href="/sentichat">
-            <Button>
-              Sentiment Chat
-            </Button>
-          </Link>
         </nav>
       </div>
     </header>

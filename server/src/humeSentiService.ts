@@ -1,5 +1,6 @@
 import WebSocket from 'ws';
 import axios from 'axios';
+import { formatPredictions } from "./tools/predictionFormatter.js";
 import { parseStreamModelPredictionsLanguage } from "./tools/parsers.js";
 import {
   StreamModelPredictionsLanguage,
@@ -111,15 +112,69 @@ class HumeSentiService {
       console.warn("No predictions to post");
       return;
     }
+    const normalizedPredictions = predictions.map((prediction) => {
+      // Normalize Position property
+      let normalizedPosition: { begin: number; end: number };
+      if (prediction.position && "begin" in prediction.position && "end" in prediction.position) {
+        normalizedPosition = prediction.position as { begin: number; end: number };
+      } else if (prediction.position && "start" in prediction.position && "end" in prediction.position) {
+        normalizedPosition = {
+          begin: prediction.position.start ?? 0,
+          end: prediction.position.end ?? 0,
+        };
+      } else {
+        normalizedPosition = { begin: 0, end: 0 };
+      }
+  
+      // Normalize Emotions
+      let normalizedEmotions: { name: string; score: number }[] = [];
+      if (Array.isArray(prediction.emotions)) {
+        normalizedEmotions = prediction.emotions as { name: string; score: number }[];
+      } else if (prediction.emotions && typeof prediction.emotions === "object") {
+        normalizedEmotions = Object.entries(prediction.emotions).map(([name, score]) => ({
+          name,
+          score: Number(score),
+        }));
+      }
+  
+      // Normalize Sentiment
+      let normalizedSentiment: { score: number }[] = [];
+      if (Array.isArray(prediction.sentiment)) {
+        normalizedSentiment = prediction.sentiment as { score: number }[];
+      } else if (prediction.sentiment && typeof prediction.sentiment === "object") {
+        normalizedSentiment = Object.entries(prediction.sentiment).map(([key, value]) => ({
+          score: Number(value),
+        }));
+      }
+  
+      // Normalize Toxicity
+      let normalizedToxicity: { score: number }[] = [];
+      if (Array.isArray(prediction.toxicity)) {
+        normalizedToxicity = prediction.toxicity as { score: number }[];
+      } else if (prediction.toxicity && typeof prediction.toxicity === "object") {
+        normalizedToxicity = Object.entries(prediction.toxicity).map(([key, value]) => ({
+          score: Number(value),
+        }));
+      }
+  
+      return {
+        text: prediction.text || "",
+        position: normalizedPosition,
+        emotions: normalizedEmotions,
+        sentiment: normalizedSentiment,
+        toxicity: normalizedToxicity,
+      };
+    });
+    const formatted = formatPredictions(normalizedPredictions);
 
     try {
-      await axios.post('http://localhost:3000/api/sentiment', { sentiments: predictions });
+      await axios.post('http://localhost:3000/api/sentiment', { sentiments: formatted });
       console.log("Sentiment data posted successfully");
     } catch (error) {
       console.error("Failed to post sentiment data", error);
     }
   }
-  
+
   public disconnect(): void {
     if (this.socket) {
       this.socket.close();

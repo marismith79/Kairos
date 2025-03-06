@@ -35,6 +35,10 @@ export function startTranscription(httpServer: any, io: any) {
     console.log("New Connection Initiated");
 
     ws.on("error", (error) => {
+    if (error && (error as any).code === "WS_ERR_INVALID_CLOSE_CODE") {
+        console.warn("Ignoring invalid close code error (1002)");
+        return;
+        }
       console.error("WebSocket connection error:", error);
     });
     
@@ -92,7 +96,6 @@ export function startTranscription(httpServer: any, io: any) {
     pushStream.write((wav.data as any).samples);
   }
 
-  // Start continuous recognition.
   recognizer.startContinuousRecognitionAsync(
     () => {
       console.log("Continuous Reco Started");
