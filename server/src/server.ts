@@ -8,8 +8,7 @@ import cors from "cors";
 import { Server as SocketIOServer } from "socket.io";
 import http from "http";
 import { startTranscription } from "./transcription.js";
-import { formatPredictions } from "./tools/predictionFormatter.js";
-
+import { notesEmitter } from "./generative.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -91,6 +90,12 @@ const io = new SocketIOServer(server, {
 // Listen for new client connections.
 io.on('connection', (socket) => {
   console.log('New client connected');
+});
+
+// Listen for generated notes from the AI bot and emit them to connected clients. NEED TO CORRECT CHAT PAGE TO INCLUDE THESE NOTES
+notesEmitter.on('notesGenerated', (notes) => {
+  console.log("Emitting generated notes to clients:", notes);
+  io.emit('notes', notes);
 });
 
 //Handle Twilio call events Request
