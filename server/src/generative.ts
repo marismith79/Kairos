@@ -6,14 +6,22 @@ export const notesEmitter = new EventEmitter();
 
 // Configuration parameters for the model
 const model = "o1-mini";  
-const promptTemplate = "Based on the following conversation, generate important notes highlighting key information points: \n\n";
+const promptTemplate = `
+Based on the following conversation, generate a JSON object of important notes. 
+The JSON should have a single key "notes" which is an array of note objects. 
+Each note object must have a "title" and a "content". 
+If a note already exists, update its "content" with any new relevant information rather than adding a duplicate.
+Ensure the output is strictly JSON.
+
+Conversation:
+`;
 const temperature = 1;
 const maxTokens = 450;
 
 // This variable accumulates all transcriptions to provide context over time.
 let conversationHistory = "";
 
-// Optional: Limit the accumulated context length to prevent overly long prompts.
+// Limit the accumulated context length to prevent overly long prompts.
 const MAX_HISTORY_LENGTH = 5000;
 
 /**
