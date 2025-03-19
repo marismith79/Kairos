@@ -1,19 +1,30 @@
+// humeSentiService.ts
+
 import WebSocket from 'ws';
 import axios from 'axios';
+import { EventEmitter } from 'events';
 import { formatPredictions } from "./tools/predictionFormatter.js";
 import { parseStreamModelPredictionsLanguage } from "./tools/parsers.js";
 import {
   StreamModelPredictionsLanguage,
   StreamModelPredictionsLanguagePredictionsItem,
 } from "./tools/models.js";
+import { outputEmitter } from "./generative.js"; 
 
 type PredictionCallback = (predictions: StreamModelPredictionsLanguagePredictionsItem[]) => void;
 
 class HumeSentiService {
   private static instance: HumeSentiService;
   private socket: WebSocket | null = null;
+  // This emitter will be used to send the completed audio Buffer downstream.
+  public audioEmitter: EventEmitter = new EventEmitter();
 
   private constructor() {
+    // Subscribe to generated notes so that we can stream them as TTS.
+    outputEmitter.on('notesGenerated', (output: string) => {
+      console.log("Received generated output for TTS:", output);
+      this.streamTextToAudio(output);
+    });
   }
 
   public static getInstance(): HumeSentiService {
@@ -24,7 +35,7 @@ class HumeSentiService {
   }
 
   /**
-   * Connects to Hume’s websocket endpoint.
+   * Connects to Hume’s sentiment analysis websocket endpoint.
    * @param apiKey - Your Hume API key.
    * @param onPrediction - Optional callback for handling prediction items.
    */
@@ -78,7 +89,7 @@ class HumeSentiService {
   }
 
   /**
-   * Sends raw text data to the Hume API.
+   * Sends raw text data to the Hume sentiment analysis API.
    * @param text - The raw text data to be processed.
    */
   public sendTextData(text: string): void {
@@ -101,6 +112,80 @@ class HumeSentiService {
 
     console.log("Sending text payload:", payload);
     this.socket.send(JSON.stringify(payload));
+  }
+
+  /**
+   * Streams the given text note to Hume’s TTS endpoint (JSON streaming version) so that MP3 audio is returned.
+   * The endpoint is: https://api.hume.ai/v0/tts/stream/json
+   *
+   * The payload conforms to the curl example provided:
+   *  - utterances array with text and description
+   *  - format type set to "mp3"
+   *
+   * As the stream returns JSON objects, each containing an "audio" property (base64 encoded), 
+   * we decode and accumulate the audio chunks.
+   *
+   * Once the stream ends, the complete audio Buffer is emitted via audioEmitter.
+   *
+   * @param text - The generated note text to convert to audio.
+   */
+  public async streamTextToAudio(text: string): Promise<void> {
+    const ttsEndpoint = "https://api.hume.ai/v0/tts/stream/json";
+    const payload = {
+      utterances: [
+        {
+          text: text,
+          description: "Generated conversational response." // You can customize this or load from config.
+        }
+      ],
+      format: {
+        type: "mp3"
+      }
+    };
+
+    try {
+      const response = await axios.post(ttsEndpoint, payload, {
+        responseType: 'stream',
+        headers: {
+          'X-Hume-Api-Key': process.env.HUME_API_KEY, // Use your Hume API key here.
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log("TTS streaming response received; processing JSON stream...");
+      const audioBuffers: Buffer[] = [];
+
+      response.data.on('data', (chunk: Buffer) => {
+        try {
+          // The response may include multiple JSON objects separated by newlines.
+          const lines = chunk.toString().split("\n").filter(line => line.trim());
+          for (const line of lines) {
+            const jsonObj = JSON.parse(line);
+            // Check if the JSON object contains an "audio" field.
+            if (jsonObj.audio) {
+              // Decode the base64-encoded MP3 chunk.
+              const audioChunk = Buffer.from(jsonObj.audio, 'base64');
+              audioBuffers.push(audioChunk);
+              console.log("Received audio chunk, size:", audioChunk.length);
+            }
+          }
+        } catch (err) {
+          console.error("Error processing TTS stream chunk:", err);
+        }
+      });
+
+      response.data.on('end', () => {
+        console.log("TTS streaming ended.");
+        // Combine all the audio chunks into one Buffer.
+        const completeAudioBuffer = Buffer.concat(
+          audioBuffers.map(b => new Uint8Array(b.buffer, b.byteOffset, b.byteLength))
+        );
+        this.audioEmitter.emit('audioReady', completeAudioBuffer);
+        console.log("Emitted complete audio data, total size:", completeAudioBuffer.length);
+      });
+    } catch (error) {
+      console.error("Error streaming text to audio via Hume TTS:", error);
+    }
   }
 
   /**

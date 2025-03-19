@@ -1,20 +1,14 @@
 import { transcriptionEmitter } from './transcription.js';
 import fetch from 'node-fetch';
-import { O3_MINI_HIGH_API_URL, O3_MINI_HIGH_API_KEY } from './tools/config.js';
+import { O1_MINI_HIGH_API_URL, O1_MINI_HIGH_API_KEY } from './tools/config.js';
 import { EventEmitter } from "events";
-export const notesEmitter = new EventEmitter();
+export const outputEmitter = new EventEmitter();
 
-// Configuration parameters for the model
 const model = "o1-mini";  
-const promptTemplate = `
-Based on the following conversation, generate a JSON object of important notes. 
-The JSON should have a single key "notes" which is an array of note objects. 
-Each note object must have a "title" and a "content". 
-If a note already exists, update its "content" with any new relevant information rather than adding a duplicate.
-Ensure the output is strictly JSON.
+const promptTemplate = `You are a helpful conversational assistant. 
+Please provide a friendly and thoughtful response that continues the conversation.
+The user said:`;
 
-Conversation:
-`;
 const temperature = 1;
 const maxTokens = 450;
 
@@ -28,7 +22,7 @@ const MAX_HISTORY_LENGTH = 5000;
  * Sends the prompt to the o3-mini-high model API using chat completions.
  * @param prompt The complete prompt to send.
  */
-async function callO3MiniModel(prompt: string): Promise<any> {
+async function callO1Model(prompt: string): Promise<any> {
   const payload = {
     model,
     messages: [
@@ -38,18 +32,18 @@ async function callO3MiniModel(prompt: string): Promise<any> {
     max_completion_tokens: maxTokens,
   };
 
-  const response = await fetch(O3_MINI_HIGH_API_URL!, {
+  const response = await fetch(O1_MINI_HIGH_API_URL!, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${O3_MINI_HIGH_API_KEY}`,
+      'Authorization': `Bearer ${O1_MINI_HIGH_API_KEY}`,
     },
     body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`O3 Mini API error: ${errorText}`);
+    throw new Error(`O1 API error: ${errorText}`);
   }
 
   return response.json();
@@ -71,15 +65,15 @@ async function handleTranscription(newText: string) {
 
   // Create the full prompt using the accumulated conversation history.
   const prompt = promptTemplate + conversationHistory;
-  console.log("Sending prompt to O3 Mini Model:", prompt);
+  console.log("Sending prompt to O1 Mini Model:", prompt);
 
   try {
-    const notesResponse = await callO3MiniModel(prompt);
-    console.log("Generated Notes:", notesResponse);
-    notesEmitter.emit("notesGenerated", notesResponse);
-    // Here we could emit an event, stream the notes to a client via websockets, or integrate into your UI.
+    const outputResponse = await callO1Model(prompt);
+    console.log("Generated Notes:", outputResponse);
+    outputEmitter.emit("outputGenerated", outputResponse);
+    // Here we could emit an event, stream the output to a client via websockets, or integrate into your UI.
   } catch (error) {
-    console.error("Error generating notes:", error);
+    console.error("Error generating output:", error);
   }
 }
 
