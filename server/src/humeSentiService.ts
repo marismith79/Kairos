@@ -1,5 +1,3 @@
-// humeSentiService.ts
-
 import WebSocket from 'ws';
 import axios from 'axios';
 import { EventEmitter } from 'events';
@@ -20,10 +18,17 @@ class HumeSentiService {
   public audioEmitter: EventEmitter = new EventEmitter();
 
   private constructor() {
-    // Subscribe to generated notes so that we can stream them as TTS.
-    outputEmitter.on('notesGenerated', (output: string) => {
-      console.log("Received generated output for TTS:", output);
-      this.streamTextToAudio(output);
+    // Listen for generated chatbot output and stream it to TTS.
+    outputEmitter.on('outputGenerated', (output: { choices?: { message?: { content: string } }[] } | string) => {
+      
+      const generatedText =
+        typeof output === 'string'
+        ? output
+        : output?.choices?.[0]?.message?.content || '';
+
+      console.log("Received generated output for TTS:", generatedText);
+      console.log("Full generated output:", JSON.stringify(output, null, 2));
+      this.streamTextToAudio(generatedText);
     });
   }
 
@@ -115,7 +120,7 @@ class HumeSentiService {
   }
 
   /**
-   * Streams the given text note to Hume’s TTS endpoint (JSON streaming version) so that MP3 audio is returned.
+   * Streams the given text output to Hume’s TTS endpoint (JSON streaming version) so that MP3 audio is returned.
    * The endpoint is: https://api.hume.ai/v0/tts/stream/json
    *
    * The payload conforms to the curl example provided:
@@ -127,7 +132,7 @@ class HumeSentiService {
    *
    * Once the stream ends, the complete audio Buffer is emitted via audioEmitter.
    *
-   * @param text - The generated note text to convert to audio.
+   * @param text - The generated output text to convert to audio.
    */
   public async streamTextToAudio(text: string): Promise<void> {
     const ttsEndpoint = "https://api.hume.ai/v0/tts/stream/json";
@@ -135,7 +140,7 @@ class HumeSentiService {
       utterances: [
         {
           text: text,
-          description: "Generated conversational response." // You can customize this or load from config.
+          description: "Generated conversational response." // Customize if needed.
         }
       ],
       format: {
@@ -147,7 +152,7 @@ class HumeSentiService {
       const response = await axios.post(ttsEndpoint, payload, {
         responseType: 'stream',
         headers: {
-          'X-Hume-Api-Key': process.env.HUME_API_KEY, // Use your Hume API key here.
+          'X-Hume-Api-Key': process.env.HUME_API_KEY, 
           'Content-Type': 'application/json'
         }
       });
@@ -184,7 +189,7 @@ class HumeSentiService {
         console.log("Emitted complete audio data, total size:", completeAudioBuffer.length);
       });
     } catch (error) {
-      console.error("Error streaming text to audio via Hume TTS:", error);
+      console.error("Error streaming text to audio via Hume TTS:");
     }
   }
 

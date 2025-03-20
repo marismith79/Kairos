@@ -10,16 +10,14 @@ Please provide a friendly and thoughtful response that continues the conversatio
 The user said:`;
 
 const temperature = 1;
-const maxTokens = 450;
+const maxTokens = 2000;
 
 // This variable accumulates all transcriptions to provide context over time.
 let conversationHistory = "";
-
-// Limit the accumulated context length to prevent overly long prompts.
 const MAX_HISTORY_LENGTH = 5000;
 
 /**
- * Sends the prompt to the o3-mini-high model API using chat completions.
+ * Sends the prompt to the o1-mini-high model API using chat completions.
  * @param prompt The complete prompt to send.
  */
 async function callO1Model(prompt: string): Promise<any> {
@@ -51,11 +49,11 @@ async function callO1Model(prompt: string): Promise<any> {
 
 /**
  * Appends new transcription text to the conversation history,
- * then sends the full context to the model for note generation.
+ * then sends the full context to the model for output generation.
  * @param newText The latest transcribed text.
  */
 async function handleTranscription(newText: string) {
-  // Append the latest transcription with a newline separator.
+  console.log("Appending new transcription to conversation history:", newText);
   conversationHistory += "\n" + newText;
 
   // Trim the conversation history if it exceeds the max length.
@@ -71,15 +69,14 @@ async function handleTranscription(newText: string) {
     const outputResponse = await callO1Model(prompt);
     console.log("Generated Notes:", outputResponse);
     outputEmitter.emit("outputGenerated", outputResponse);
-    // Here we could emit an event, stream the output to a client via websockets, or integrate into your UI.
   } catch (error) {
     console.error("Error generating output:", error);
   }
 }
 
 // Listen for transcription events and handle them.
-// This assumes your event emits an object with a 'processedText' property.
 transcriptionEmitter.on('transcriptionReady', async (data: { processedText: string }) => {
+  console.log("Received transcription event with text:", data.processedText);
   await handleTranscription(data.processedText);
 });
 
@@ -87,6 +84,7 @@ transcriptionEmitter.on('transcriptionReady', async (data: { processedText: stri
  * Optionally, you might want to clear the conversation history at the end of a call.
  */
 export function clearConversationHistory() {
+  console.log("Clearing conversation history.");
   conversationHistory = "";
 }
 
