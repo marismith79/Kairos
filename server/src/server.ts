@@ -15,8 +15,6 @@ const __dirname = dirname(__filename);
 
 // Determine if we're in production (Azure) or development
 const isProduction = process.env.NODE_ENV === "production";
-
-// Adjust paths based on environment
 const envPath = isProduction
   ? path.join(__dirname, "../../../.env") // Azure path
   : path.join(__dirname, "../../.env"); // Local path
@@ -98,20 +96,48 @@ outputEmitter.on('outputGenerated', (output) => {
   io.emit('output', output);
 });
 
+// Global variable to hold the latest TTS audio Buffer.
+let latestTTSAudioBuffer: Buffer | null = null;
+
+// Listen for TTS audioReady event from HumeSentiService.
+humeSentiService.audioEmitter.on('audioReady', (audioBuffer: Buffer) => {
+  console.log("Received complete TTS audio, size:", audioBuffer.length);
+  latestTTSAudioBuffer = audioBuffer;
+});
+
+// New endpoint to serve the TTS MP3 data.
+app.get("/tts.mp3", (req: Request, res: Response) => {
+  if (latestTTSAudioBuffer) {
+    res.setHeader("Content-Type", "audio/mpeg");
+    res.send(latestTTSAudioBuffer);
+  } else {
+    res.status(404).send("No TTS audio available.");
+  }
+});
+
 // Handle Twilio call events.
 startTranscription(server, io);
 
 app.get("/", (req, res) => res.send("Hello World"));
 
+// Twilio webhook endpoint that returns TwiML.
 app.post("/", (req, res) => {
   res.set("Content-Type", "text/xml");
+  const host = req.headers.host;
+
+  // Check if the latest TTS audio buffer exists and has data.
+  let playElement = "";
+  if (latestTTSAudioBuffer && latestTTSAudioBuffer.length > 0) {
+    playElement = `<Play>https://${host}/tts.mp3</Play>`;
+  }
 
   res.send(`
     <Response>
       <Start>
-        <Stream url="wss://${req.headers.host}/"/>
+        <Stream url="wss://${host}/"/>
       </Start>
       <Say>Speak Now</Say>
+      ${playElement}
       <Pause length="60" />
     </Response>
   `);

@@ -7,7 +7,7 @@ import {
   StreamModelPredictionsLanguage,
   StreamModelPredictionsLanguagePredictionsItem,
 } from "./tools/models.js";
-import { outputEmitter } from "./generative.js"; 
+import { outputEmitter } from "./generative.js";
 
 type PredictionCallback = (predictions: StreamModelPredictionsLanguagePredictionsItem[]) => void;
 
@@ -20,11 +20,10 @@ class HumeSentiService {
   private constructor() {
     // Listen for generated chatbot output and stream it to TTS.
     outputEmitter.on('outputGenerated', (output: { choices?: { message?: { content: string } }[] } | string) => {
-      
       const generatedText =
         typeof output === 'string'
-        ? output
-        : output?.choices?.[0]?.message?.content || '';
+          ? output
+          : output?.choices?.[0]?.message?.content || '';
 
       console.log("Received generated output for TTS:", generatedText);
       console.log("Full generated output:", JSON.stringify(output, null, 2));
@@ -159,19 +158,29 @@ class HumeSentiService {
       
       console.log("TTS streaming response received; processing JSON stream...");
       const audioBuffers: Buffer[] = [];
+      let ttsBuffer = ""; 
 
       response.data.on('data', (chunk: Buffer) => {
         try {
-          // The response may include multiple JSON objects separated by newlines.
-          const lines = chunk.toString().split("\n").filter(line => line.trim());
+          ttsBuffer += chunk.toString();
+          // Split the buffer by newline – Hume TTS streams newline-delimited JSON.
+          const lines = ttsBuffer.split("\n");
+          // The last line might be incomplete; retain it in the buffer.
+          ttsBuffer = lines.pop() || "";
           for (const line of lines) {
-            const jsonObj = JSON.parse(line);
-            // Check if the JSON object contains an "audio" field.
-            if (jsonObj.audio) {
-              // Decode the base64-encoded MP3 chunk.
-              const audioChunk = Buffer.from(jsonObj.audio, 'base64');
-              audioBuffers.push(audioChunk);
-              console.log("Received audio chunk, size:", audioChunk.length);
+            const trimmed = line.trim();
+            if (!trimmed) continue;
+            try {
+              const jsonObj = JSON.parse(trimmed);
+              // Check if the JSON object contains an "audio" field.
+              if (jsonObj.audio) {
+                // Decode the base64-encoded MP3 chunk.
+                const audioChunk = Buffer.from(jsonObj.audio, 'base64');
+                audioBuffers.push(audioChunk);
+                console.log("Received audio chunk, size:", audioChunk.length);
+              }
+            } catch (err) {
+              console.error("Error parsing complete line:", err);
             }
           }
         } catch (err) {
@@ -181,7 +190,20 @@ class HumeSentiService {
 
       response.data.on('end', () => {
         console.log("TTS streaming ended.");
-        // Combine all the audio chunks into one Buffer.
+        // Process any remaining buffered data.
+        if (ttsBuffer.trim().length > 0) {
+          try {
+            const jsonObj = JSON.parse(ttsBuffer.trim());
+            if (jsonObj.audio) {
+              const audioChunk = Buffer.from(jsonObj.audio, 'base64');
+              audioBuffers.push(audioChunk);
+              console.log("Received final audio chunk, size:", audioChunk.length);
+            }
+          } catch (err) {
+            console.error("Error parsing final buffer:", err);
+          }
+        }
+        // Combine all audio chunks into one complete Buffer.
         const completeAudioBuffer = Buffer.concat(
           audioBuffers.map(b => new Uint8Array(b.buffer, b.byteOffset, b.byteLength))
         );
@@ -189,7 +211,7 @@ class HumeSentiService {
         console.log("Emitted complete audio data, total size:", completeAudioBuffer.length);
       });
     } catch (error) {
-      console.error("Error streaming text to audio via Hume TTS:");
+      console.error("Error streaming text to audio via Hume TTS:", error);
     }
   }
 
