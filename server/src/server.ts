@@ -7,8 +7,8 @@ import { fetchAccessToken } from "hume";
 import cors from "cors";
 import { Server as SocketIOServer } from "socket.io";
 import http from "http";
-import { startTranscription } from "./transcription.js";
 import { outputEmitter } from "./generative.js";
+import { startTranscription } from "./transcription.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -19,17 +19,20 @@ const envPath = isProduction
   ? path.join(__dirname, "../../../.env") // Azure path
   : path.join(__dirname, "../../.env"); // Local path
 
-dotenv.config();
+dotenv.config({ path: envPath });
+console.log("[Server] Environment variables loaded from:", envPath);
 
 const PORT = process.env.PORT || 3000;
 const app = express();
 
 // Enable CORS middleware
-app.use(cors({
-  origin: 'http://localhost:5173',
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type'],
-}));
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
 
 // Parse JSON bodies
 app.use(express.json());
@@ -39,8 +42,8 @@ const clientPath = isProduction
   ? path.join(__dirname, "../../../client/dist") // Azure path
   : path.join(__dirname, "../../client/dist");
 
-console.log("Environment:", process.env.NODE_ENV);
-console.log("Serving static files from:", clientPath);
+console.log("[Server] Environment:", process.env.NODE_ENV);
+console.log("[Server] Serving static files from:", clientPath);
 app.use(express.static(clientPath));
 
 app.get("/api/v1", (req: Request, res: Response) => {
@@ -48,10 +51,12 @@ app.get("/api/v1", (req: Request, res: Response) => {
 });
 
 app.get("/api/getHumeAccessToken", async (req: Request, res: Response) => {
+  console.log("[Server] GET /api/getHumeAccessToken called.");
   const apiKey = process.env.HUME_API_KEY;
   const secretKey = process.env.HUME_SECRET_KEY;
   
   if (!apiKey || !secretKey) {
+    console.error("[Server] Missing Hume API credentials.");
     return res.status(500).json({
       error: "Hume API key or Secret key is missing on the server.",
     });
@@ -71,7 +76,7 @@ app.get("/api/getHumeAccessToken", async (req: Request, res: Response) => {
 
     res.json({ accessToken });
   } catch (error) {
-    console.error("Error fetching Hume access token:", error);
+    console.error("[Server] Error fetching Hume access token:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
@@ -82,80 +87,35 @@ const io = new SocketIOServer(server, {
   cors: {
     origin: "http://localhost:5173",
     methods: ["GET", "POST"],
-  }
+  },
 });
 
-// Listen for new client connections.
-io.on('connection', (socket) => {
-  console.log('New client connected');
-});
-
-// Listen for generated output from the AI bot and emit them to connected clients.
-outputEmitter.on('outputGenerated', (output) => {
-  console.log("Emitting generated output to clients:", output);
-  io.emit('output', output);
-});
-
-// Global variable to hold the latest TTS audio Buffer.
-let latestTTSAudioBuffer: Buffer | null = null;
-
-// Listen for TTS audioReady event from HumeSentiService.
-humeSentiService.audioEmitter.on('audioReady', (audioBuffer: Buffer) => {
-  console.log("Received complete TTS audio, size:", audioBuffer.length);
-  latestTTSAudioBuffer = audioBuffer;
-});
-
-// New endpoint to serve the TTS MP3 data.
-app.get("/tts.mp3", (req: Request, res: Response) => {
-  if (latestTTSAudioBuffer) {
-    res.setHeader("Content-Type", "audio/mpeg");
-    res.send(latestTTSAudioBuffer);
-  } else {
-    res.status(404).send("No TTS audio available.");
-  }
-});
-
-// Handle Twilio call events.
 startTranscription(server, io);
 
-app.get("/", (req, res) => res.send("Hello World"));
-
-// Twilio webhook endpoint that returns TwiML.
-app.post("/", (req, res) => {
-  res.set("Content-Type", "text/xml");
-  const host = req.headers.host;
-
-  // Check if the latest TTS audio buffer exists and has data.
-  let playElement = "";
-  if (latestTTSAudioBuffer && latestTTSAudioBuffer.length > 0) {
-    playElement = `<Play>https://${host}/tts.mp3</Play>`;
-  }
-
-  res.send(`
-    <Response>
-      <Start>
-        <Stream url="wss://${host}/"/>
-      </Start>
-      <Say>Speak Now</Say>
-      ${playElement}
-      <Pause length="60" />
-    </Response>
-  `);
+// Emit generated text output from the generative model.
+outputEmitter.on("outputGenerated", (output) => {
+  // console.log("[Server] Emitting generated output to clients:", output);
+  io.emit("output", output);
 });
 
-app.post("/api/sentiment", (req: Request, res: Response) => {
-  console.log("POST /api/sentiment endpoint hit");
-  const formatted = req.body.sentiments;
-  io.emit("sentimentUpdate", formatted);
-  res.sendStatus(200);
+// Stream TTS audio: as each audio chunk is received from Hume's TTS via humeSentiService,
+humeSentiService.audioEmitter.on("audioChunk", (audioChunk: Buffer) => {
+  // console.log("[Server] Emitting audio chunk, size:", audioChunk.length);
+  io.emit("audioStream", audioChunk);
 });
 
-humeSentiService.connect(process.env.HUME_API_KEY!, (predictions) => {
-  // Optionally log predictions from Hume if needed:
-  // console.log("Received predictions from Hume:", predictions);
+// Debugging whisper transcription
+app.get("/debug/:filename", (req, res) => {
+  const filename = req.params.filename;
+  const filePath = `/tmp/${filename}`;
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      res.status(404).send("File not found");
+    }
+  });
 });
 
-// Adjust index.html path based on environment
+// Catch-all endpoint to serve the SPA.
 app.get("*", (req: Request, res: Response) => {
   const indexPath = isProduction
     ? path.join(__dirname, "../../../client/dist/index.html")
@@ -165,5 +125,5 @@ app.get("*", (req: Request, res: Response) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}, env port is ${process.env.PORT}`);
+  console.log(`[Server] Server running on http://localhost:${PORT}, env port is ${process.env.PORT}`);
 });

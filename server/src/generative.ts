@@ -1,90 +1,80 @@
 import { transcriptionEmitter } from './transcription.js';
 import fetch from 'node-fetch';
-import { O1_MINI_HIGH_API_URL, O1_MINI_HIGH_API_KEY } from './tools/config.js';
+import { AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY } from './tools/config.js';
 import { EventEmitter } from "events";
 export const outputEmitter = new EventEmitter();
 
-const model = "o1-mini";  
-const promptTemplate = `You are a helpful conversational assistant. 
+// Prompt template for generating responses.
+const promptTemplate = `You are a company cofounder who is trying to strategize on a new business opportunity.
 Please provide a friendly and thoughtful response that continues the conversation.
 The user said:`;
 
+// Settings for the Azure OpenAI API.
 const temperature = 1;
 const maxTokens = 2000;
 
-// This variable accumulates all transcriptions to provide context over time.
+// Accumulates conversation context.
 let conversationHistory = "";
 const MAX_HISTORY_LENGTH = 5000;
 
-/**
- * Sends the prompt to the o1-mini-high model API using chat completions.
- * @param prompt The complete prompt to send.
- */
-async function callO1Model(prompt: string): Promise<any> {
+function getAzureEndpointUrl(): string {
+  // return `${AZURE_OPENAI_ENDPOINT}`;
+  return 'null'; // CHANGE THIS WHEN YOU DEBUG THE TRANSCRIPTION
+}
+
+async function callAzureModel(prompt: string): Promise<any> {
+  // console.log("[Generative] Calling Azure OpenAI model with prompt:", prompt);
   const payload = {
-    model,
-    messages: [
-      { role: "user", content: prompt }
-    ],
+    messages: [{ role: "user", content: prompt }],
     temperature,
-    max_completion_tokens: maxTokens,
+    max_tokens: maxTokens,
   };
 
-  const response = await fetch(O1_MINI_HIGH_API_URL!, {
-    method: 'POST',
+  const url = getAzureEndpointUrl();
+
+  const response = await fetch(url, {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${O1_MINI_HIGH_API_KEY}`,
+      "Content-Type": "application/json",
+      "api-key": AZURE_OPENAI_API_KEY || "",
     },
     body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`O1 API error: ${errorText}`);
+    throw new Error(`[Generative] Azure OpenAI API error: ${errorText}`);
   }
-
+  // console.log("[Generative] Received response from Azure OpenAI.");
   return response.json();
 }
 
-/**
- * Appends new transcription text to the conversation history,
- * then sends the full context to the model for output generation.
- * @param newText The latest transcribed text.
- */
 async function handleTranscription(newText: string) {
-  console.log("Appending new transcription to conversation history:", newText);
+  console.log("[Generative] Received new transcription:", newText);
   conversationHistory += "\n" + newText;
 
-  // Trim the conversation history if it exceeds the max length.
   if (conversationHistory.length > MAX_HISTORY_LENGTH) {
     conversationHistory = conversationHistory.slice(-MAX_HISTORY_LENGTH);
   }
 
-  // Create the full prompt using the accumulated conversation history.
   const prompt = promptTemplate + conversationHistory;
-  console.log("Sending prompt to O1 Mini Model:", prompt);
+  // console.log("[Generative] Sending prompt to Azure OpenAI model:", prompt);
 
   try {
-    const outputResponse = await callO1Model(prompt);
-    console.log("Generated Notes:", outputResponse);
+    const outputResponse = await callAzureModel(prompt);
     outputEmitter.emit("outputGenerated", outputResponse);
   } catch (error) {
-    console.error("Error generating output:", error);
+    console.error("[Generative] Error generating output:", error);
   }
 }
 
-// Listen for transcription events and handle them.
-transcriptionEmitter.on('transcriptionReady', async (data: { processedText: string }) => {
-  console.log("Received transcription event with text:", data.processedText);
+transcriptionEmitter.on("transcriptionReady", async (data: { processedText: string }) => {
+  console.log("[Generative] Transcription event received with text:", data.processedText);
   await handleTranscription(data.processedText);
 });
 
-/**
- * Optionally, you might want to clear the conversation history at the end of a call.
- */
 export function clearConversationHistory() {
-  console.log("Clearing conversation history.");
+  console.log("[Generative] Clearing conversation history.");
   conversationHistory = "";
 }
 

@@ -1,35 +1,34 @@
-import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 import WebSocket from "ws";
-import { humeSentiService } from "./humeSentiService.js";
-import pkg from "wavefile";
-import { AZURE_SPEECH_KEY, AZURE_REGION } from "./tools/config.js";
+import pkg from "wavefile"
+import { O1_MINI_HIGH_API_KEY } from './tools/config.js';
+import { writeFileSync, createReadStream, unlinkSync } from "fs";
+import { v4 as uuidv4 } from "uuid";
+import FormData from "form-data";
+import axios from "axios";
 import { EventEmitter } from "events";
-export const transcriptionEmitter = new EventEmitter();
+import { clearConversationHistory } from "./generative.js";
 const { WaveFile } = pkg;
-const language = "en-US";
-if (!AZURE_SPEECH_KEY || !AZURE_REGION) {
-  throw new Error("Missing required Azure configuration.");
-}
-const speechConfig = sdk.SpeechConfig.fromSubscription(AZURE_SPEECH_KEY, AZURE_REGION);
-speechConfig.speechRecognitionLanguage = language;
+
+export const transcriptionEmitter = new EventEmitter();
+
+// Start the transcription service that uses OpenAI Whisper.
 export function startTranscription(httpServer: any, io: any) {
   const wss = new WebSocket.Server({ server: httpServer });
+  
   wss.on("error", (error) => {
     console.error("WebSocket server error:", error);
   });
+  
   wss.on("connection", (ws) => {
     console.log("New Connection Initiated");
-    const pushStream = sdk.AudioInputStream.createPushStream(sdk.AudioStreamFormat.getWaveFormatPCM(8000, 16, 1));
-    const audioConfig = sdk.AudioConfig.fromStreamInput(pushStream);
-    const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
+    // Array to accumulate incoming audio chunks.
+    let audioChunks: Uint8Array[] = [];
+    
     ws.on("error", (error) => {
-      if (error && (error as any).code === "WS_ERR_INVALID_CLOSE_CODE") {
-        console.warn("Ignoring invalid close code error (1002)");
-        return;
-      }
       console.error("WebSocket connection error:", error);
     });
-    ws.on("message", (message: string) => {
+    
+    ws.on("message", async (message: string) => {
       const msg = JSON.parse(message);
       switch (msg.event) {
         case "connected":
@@ -40,53 +39,92 @@ export function startTranscription(httpServer: any, io: any) {
           console.log(`Starting Media Stream ${msg.streamSid}`);
           break;
         case "media":
-          writeData(msg.media.payload, pushStream);
+          console.log("Received audio chunk. Base64 length:", msg.media.payload.length);
+          const wav = new WaveFile();
+          const buf = Buffer.from(msg.media.payload, "base64");
+          wav.fromScratch(1, 8000, "8m", buf);
+          wav.fromMuLaw();           
+          wav.toBitDepth("16");      
+          wav.toSampleRate(8000);    
+          const pcmBuffer: Buffer = (wav.data as { samples: Buffer }).samples;
+          const pcmChunk = new Uint8Array(pcmBuffer.buffer, pcmBuffer.byteOffset, pcmBuffer.byteLength);
+          // console.log("Processed chunk length (bytes):", pcmChunk.length);
+          audioChunks.push(pcmChunk);
           break;
-        case "stop":
-          console.log("Call Has Ended");
-          pushStream.close();
-          break;
-      }
+          case "vad":
+            // Client-side VAD event: if status indicates silence, flush audio. 
+            if (msg.status === "silence") {
+              // console.log("Client VAD indicates silence. Flushing audio...");
+              await flushAudio();
+            }
+            break;
+          case "stop":
+            console.log("Call Has Ended");
+            // await flushAudio();
+            clearConversationHistory();
+            break;
+          default:
+            break;
+        }
+  
+        async function flushAudio() {
+          const finalBuffer = Buffer.concat(audioChunks as readonly Uint8Array[]);
+          console.log("Final audio buffer length:", finalBuffer.length);
+          if (finalBuffer.length < 1000) {
+            console.log("Audio buffer is empty. Ignoring VAD event.");
+            audioChunks = [];
+            return;
+          }
+          
+          const wav = new WaveFile();
+          wav.fromScratch(1, 8000, '16', finalBuffer);
+          const wavBuffer = wav.toBuffer();
+        
+          // Write the WAV buffer to a temporary file.
+          const tempFilename = `/tmp/${uuidv4()}.wav`;
+          writeFileSync(tempFilename, wavBuffer);
+          console.log(`Debug URL: http://localhost:3000/debug/${tempFilename}`);
+          
+          
+          try {
+            writeFileSync(tempFilename, wavBuffer);
+            const transcription = await transcribeWithWhisper(tempFilename);
+            console.log("Whisper transcription:", transcription);
+            io.emit("finalTranscription", transcription);
+            transcriptionEmitter.emit("transcriptionReady", { processedText: transcription });
+          } catch (err) {
+            console.error("Error transcribing with Whisper:", err);
+          } finally {
+            try {
+              unlinkSync(tempFilename);
+              console.log(`Temporary file ${tempFilename} deleted.`);
+            } catch (cleanupErr) {
+              console.error("Error cleaning up temporary file:", cleanupErr);
+            }
+          }
+          // Reset the audio buffer for the next session.
+          audioChunks = [];
+        }        
     });
-    recognizer.recognized = (s, e) => {
-      if (e.result.reason === sdk.ResultReason.RecognizedSpeech) {
-        const finalText = e.result.text;
-        console.log(`FINAL TRANSCRIPTION: ${finalText}`);
-        io.emit("finalTranscription", finalText);
-        humeSentiService.sendTextData(finalText);
-        transcriptionEmitter.emit("transcriptionReady", { processedText: finalText });
-      } else if (e.result.reason === sdk.ResultReason.NoMatch) {
-        console.log("NOMATCH: Speech could not be recognized.");
-      }
-    };
-    recognizer.canceled = (s, e) => {
-      console.log(`CANCELED: Reason=${e.reason}`);
-      if (e.reason === sdk.CancellationReason.Error) {
-        console.log(`CANCELED: ErrorCode=${e.errorCode}`);
-        console.log(`CANCELED: ErrorDetails=${e.errorDetails}`);
-        console.log("CANCELED: Did you update the key and location/region info?");
-      }
-      recognizer.stopContinuousRecognitionAsync();
-    };
-    recognizer.sessionStopped = (s, e) => {
-      console.log("Session stopped event.");
-      recognizer.stopContinuousRecognitionAsync();
-    };
-    function writeData(data: string, stream: any) {
-      const wav = new WaveFile();
-      wav.fromScratch(1, 8000, "8m", Buffer.from(data, "base64"));
-      wav.fromMuLaw();
-      wav.toSampleRate(8000);
-      stream.write((wav.data as any).samples);
-    }
-    recognizer.startContinuousRecognitionAsync(
-      () => {
-        console.log("Continuous Reco Started");
-      },
-      (err) => {
-        console.trace("Error starting recognition:", err);
-        recognizer.close();
-      }
-    );
   });
+}
+
+/**
+ * Transcribe the audio file at the given file path using OpenAI's Whisper API.
+ * Returns the transcribed text.
+ */
+async function transcribeWithWhisper(filePath: string): Promise<string> {
+  const form = new FormData();
+  form.append("file", createReadStream(filePath));
+  form.append("model", "whisper-1");
+  
+  const response = await axios.post("https://api.openai.com/v1/audio/transcriptions", form, {
+    headers: {
+      ...form.getHeaders(),
+      "Authorization": `Bearer ${O1_MINI_HIGH_API_KEY}`,
+    },
+  });
+  
+  // The API response should contain a 'text' field with the transcription.
+  return response.data.text;
 }
