@@ -8,6 +8,19 @@ export default function Chat() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const vadAnimationFrameId = useRef<number | null>(null);
+  // Use a ref to store the header from the first complete chunk.
+  const storedHeaderRef = useRef<Uint8Array | null>(null);
+
+  // Helper to check if a WebM chunk starts with the expected EBML header.
+  function isCompleteWebMChunk(buffer: ArrayBuffer): boolean {
+    const header = new Uint8Array(buffer.slice(0, 4));
+    return (
+      header[0] === 0x1A &&
+      header[1] === 0x45 &&
+      header[2] === 0xDF &&
+      header[3] === 0xA3
+    );
+  }
 
   const startCall = async () => {
     const wsConnection = new WebSocket("ws://localhost:3000");
@@ -24,112 +37,139 @@ export default function Chat() {
       source.connect(analyser);
       analyserRef.current = analyser;
 
-      // Establish a WebSocket connection to your backend.
       wsConnection.onopen = () => {
         console.log("WebSocket connection opened.");
         wsConnection.send(JSON.stringify({ event: "connected" }));
         wsConnection.send(JSON.stringify({ event: "start", streamSid: "unique-stream-id" }));
       };
+
       wsConnection.onclose = (e) => {
         console.log("WebSocket closed:", e);
       };
+
       wsConnection.onerror = (e) => {
         console.error("WebSocket error:", e);
       };
+      
       // Received TTS emitted audio chunks
-      wsConnection.onmessage = e => { 
-        const d = JSON.parse(e.data); 
-        if(d.event==="audioReady" && d.completeAudioBuffer)
-          new Audio(URL.createObjectURL(new Blob([Uint8Array.from(atob(d.completeAudioBuffer), c=>c.charCodeAt(0))], {type:"audio/webm"}))).play();
+      wsConnection.onmessage = (e) => {
+        try {
+          const d = JSON.parse(e.data);
+          if (d.event === "audioReady" && d.completeAudioBuffer) {
+            new Audio(
+              URL.createObjectURL(
+                new Blob(
+                  [Uint8Array.from(atob(d.completeAudioBuffer), (c) => c.charCodeAt(0))],
+                  { type: "audio/webm" }
+                )
+              )
+            ).play();
+          }
+        } catch (err) {
+          console.error("Error parsing message from server:", err);
+        }
       };
 
       setWs(wsConnection);
 
-      // Set up the MediaRecorder to capture audio and send chunks every 150ms.
+      // Set up MediaRecorder with a 1-second timeslice.
       const recorder = new MediaRecorder(stream);
-      recorder.ondataavailable = (event: BlobEvent) => {
+      recorder.ondataavailable = async (event: BlobEvent) => {
         if (event.data.size > 0 && wsConnection.readyState === WebSocket.OPEN) {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const dataUrl = reader.result?.toString();
-            wsConnection.send(JSON.stringify({ event: "media", media: { payload: dataUrl } }));
-          };
-          reader.readAsDataURL(event.data);
+          try {
+            const arrayBuffer = await event.data.arrayBuffer();
+            const chunkUint8 = new Uint8Array(arrayBuffer);
+
+            // Check if the chunk contains a complete EBML header.
+            if (isCompleteWebMChunk(arrayBuffer)) {
+              // Store header if not already stored.
+              if (!storedHeaderRef.current) {
+                // Store the first 100 bytes (adjust length as necessary).
+                storedHeaderRef.current = chunkUint8.slice(0, 100);
+              }
+              wsConnection.send(arrayBuffer);
+            } else {
+              if (storedHeaderRef.current) {
+                // Prepend the stored header to the incomplete chunk.
+                const newChunk = new Uint8Array(storedHeaderRef.current.length + chunkUint8.length);
+                newChunk.set(storedHeaderRef.current, 0);
+                newChunk.set(chunkUint8, storedHeaderRef.current.length);
+                wsConnection.send(newChunk.buffer);
+              } else {
+                // Fallback: send the chunk as-is if no header is stored.
+                console.warn("Chunk is incomplete and no stored header is available. Sending chunk as-is.");
+                wsConnection.send(arrayBuffer);
+              }
+            }
+          } catch (err) {
+            console.error("Error processing audio chunk:", err);
+          }
         }
       };
-      recorder.start(150);
+
+      recorder.start(1000);
       setMediaRecorder(recorder);
       setRecording(true);
 
-      // VAD: Checks the volume level from the analyser node.
-    const startVAD = () => {
-      if (!analyserRef.current) return;
-      const threshold = 0.008; // Adjust this threshold based on testing.
-      let silenceStart: number | null = null;
-
-      const checkVolume = () => {
+      // VAD monitoring: checks the volume level from the analyser node.
+      const startVAD = () => {
         if (!analyserRef.current) return;
-        const buffer = new Float32Array(analyserRef.current.fftSize);
-        analyserRef.current.getFloatTimeDomainData(buffer);
-        // Calculate RMS (root mean square) of the audio data.
-        const rms = Math.sqrt(buffer.reduce((sum, val) => sum + val * val, 0) / buffer.length);
-        console.log("RMS value:", rms);
-        
-        if (rms < threshold) {
-          if (!silenceStart) {
-            silenceStart = performance.now();
-            // console.log("check1");
-          } else {
-            // console.log("check2");
-            const silenceDuration = performance.now() - silenceStart;
+        const threshold = 0.008; // Adjust threshold as needed.
+        let silenceStart: number | null = null;
 
-            // If silence is detected for more than 1 second, send a VAD event.
-            if (silenceDuration > 1000 && wsConnection.readyState === WebSocket.OPEN) {
-              console.log("check3");
-              wsConnection.send(JSON.stringify({ event: "vad", status: "silence" }));
-              // Reset to avoid multiple triggers.
-              silenceStart = null;
+        const checkVolume = () => {
+          if (!analyserRef.current) return;
+          const buffer = new Float32Array(analyserRef.current.fftSize);
+          analyserRef.current.getFloatTimeDomainData(buffer);
+          const rms = Math.sqrt(buffer.reduce((sum, val) => sum + val * val, 0) / buffer.length);
+          console.log("RMS value:", rms);
+
+          if (rms < threshold) {
+            console.log("Check 1");
+            if (!silenceStart) {
+              silenceStart = performance.now();
+            } else {
+              const silenceDuration = performance.now() - silenceStart;
+              console.log("Check 2");
+              if (silenceDuration > 1000 && wsConnection.readyState === WebSocket.OPEN) {
+                console.log("Check 3");
+                console.log("Silence detected, sending VAD event.");
+                wsConnection.send(JSON.stringify({ event: "vad", status: "silence" }));
+                silenceStart = null;
+              }
             }
+          } else {
+            silenceStart = null;
           }
-        } else {
-          silenceStart = null;
-        }
+          vadAnimationFrameId.current = requestAnimationFrame(checkVolume);
+        };
+
         vadAnimationFrameId.current = requestAnimationFrame(checkVolume);
       };
-
-      vadAnimationFrameId.current = requestAnimationFrame(checkVolume);
-    };
-      // Start VAD monitoring.
       startVAD();
     } catch (error) {
       console.error("Error starting call:", error);
     }
   };
 
-  // Stops the call, stops all media, cancels VAD, and sends the "stop" event.
   const stopCall = () => {
     console.log("Stopping call...");
-    // Stop the media recorder.
     if (mediaRecorder) {
       mediaRecorder.stop();
       setMediaRecorder(null);
     }
-    // Cancel VAD animation.
     if (vadAnimationFrameId.current) {
       cancelAnimationFrame(vadAnimationFrameId.current);
       vadAnimationFrameId.current = null;
     }
-    // Stop all tracks of the media stream.
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
-    // Close the audio context.
     if (audioContextRef.current) {
       audioContextRef.current.close();
       audioContextRef.current = null;
     }
-    // Send a "stop" event to the backend and close the WebSocket.
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ event: "stop" }));
       ws.close();
@@ -138,7 +178,6 @@ export default function Chat() {
     setRecording(false);
   };
 
-  // Clean up when the component unmounts.
   useEffect(() => {
     console.log("Chat component mounted.");
     return () => {
