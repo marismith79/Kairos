@@ -74,7 +74,7 @@ export default function Chat() {
         analyserRef.current.getFloatTimeDomainData(buffer);
         // Calculate RMS (root mean square) of the audio data.
         const rms = Math.sqrt(buffer.reduce((sum, val) => sum + val * val, 0) / buffer.length);
-        // console.log("RMS value:", rms);
+        console.log("RMS value:", rms);
         
         if (rms < threshold) {
           if (!silenceStart) {

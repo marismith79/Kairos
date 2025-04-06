@@ -104,17 +104,6 @@ humeSentiService.audioEmitter.on("audioChunk", (audioChunk: Buffer) => {
   io.emit("audioStream", audioChunk);
 });
 
-// Debugging whisper transcription
-app.get("/debug/:filename", (req, res) => {
-  const filename = req.params.filename;
-  const filePath = `/tmp/${filename}`;
-  res.sendFile(filePath, (err) => {
-    if (err) {
-      res.status(404).send("File not found");
-    }
-  });
-});
-
 // Catch-all endpoint to serve the SPA.
 app.get("*", (req: Request, res: Response) => {
   const indexPath = isProduction
