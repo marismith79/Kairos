@@ -8,7 +8,6 @@ export default function Chat() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const vadAnimationFrameId = useRef<number | null>(null);
-  // const wsConnection = new WebSocket("ws://localhost:3000");
 
   const startCall = async () => {
     const wsConnection = new WebSocket("ws://localhost:3000");
@@ -37,10 +36,11 @@ export default function Chat() {
       wsConnection.onerror = (e) => {
         console.error("WebSocket error:", e);
       };
+      // Received TTS emitted audio chunks
       wsConnection.onmessage = e => { 
         const d = JSON.parse(e.data); 
         if(d.event==="audioReady" && d.completeAudioBuffer)
-          new Audio(URL.createObjectURL(new Blob([Uint8Array.from(atob(d.completeAudioBuffer), c=>c.charCodeAt(0))], {type:"audio/mp3"}))).play();
+          new Audio(URL.createObjectURL(new Blob([Uint8Array.from(atob(d.completeAudioBuffer), c=>c.charCodeAt(0))], {type:"audio/webm"}))).play();
       };
 
       setWs(wsConnection);
@@ -49,11 +49,10 @@ export default function Chat() {
       const recorder = new MediaRecorder(stream);
       recorder.ondataavailable = (event: BlobEvent) => {
         if (event.data.size > 0 && wsConnection.readyState === WebSocket.OPEN) {
-          // Convert the blob to a base64 string.
           const reader = new FileReader();
           reader.onloadend = () => {
-            const base64data = reader.result?.toString().split(",")[1];
-            wsConnection.send(JSON.stringify({ event: "media", media: { payload: base64data } }));
+            const dataUrl = reader.result?.toString();
+            wsConnection.send(JSON.stringify({ event: "media", media: { payload: dataUrl } }));
           };
           reader.readAsDataURL(event.data);
         }

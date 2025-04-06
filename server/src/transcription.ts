@@ -1,5 +1,6 @@
 import WebSocket from "ws";
-import pkg from "wavefile";
+import ffmpeg from "fluent-ffmpeg";
+import ffmpegPath from "ffmpeg-static";
 import { O1_MINI_HIGH_API_KEY } from "./tools/config.js";
 import { writeFileSync, createReadStream, unlinkSync } from "fs";
 import { v4 as uuidv4 } from "uuid";
@@ -7,24 +8,33 @@ import FormData from "form-data";
 import axios from "axios";
 import { EventEmitter } from "events";
 import { clearConversationHistory } from "./generative.js";
-const { WaveFile } = pkg;
+
+if (ffmpegPath === null) {
+  throw new Error("ffmpeg path is null");
+}
+ffmpeg.setFfmpegPath(ffmpegPath);
 
 export const transcriptionEmitter = new EventEmitter();
 
-// Start the transcription service that uses OpenAI Whisper.
-export function startTranscription(httpServer: any, io: any) {
+// Ensure that the API key is a non-null string.
+const API_KEY: string = O1_MINI_HIGH_API_KEY!;
+if (!API_KEY) {
+  throw new Error("API key is missing");
+}
+
+export function startTranscription(httpServer: any, io: any): void {
   const wss = new WebSocket.Server({ server: httpServer });
 
-  wss.on("error", (error) => {
+  wss.on("error", (error: Error) => {
     console.error("WebSocket server error:", error);
   });
 
-  wss.on("connection", (ws) => {
+  wss.on("connection", (ws: WebSocket) => {
     console.log("New Connection Initiated");
     // Array to accumulate incoming audio chunks.
     let audioChunks: Uint8Array[] = [];
 
-    ws.on("error", (error) => {
+    ws.on("error", (error: Error) => {
       console.error("WebSocket connection error:", error);
     });
 
@@ -41,11 +51,9 @@ export function startTranscription(httpServer: any, io: any) {
         case "media":
           console.log("Received audio chunk. Base64 length:", msg.media.payload.length);
           const buf = Buffer.from(msg.media.payload, "base64");
-          const pcmChunk = new Uint8Array(buf);
-
-          // Validate audio chunk quality using RMS.
-          if (pcmChunk.length > 0) {
-            audioChunks.push(pcmChunk);
+          // The incoming data is assumed to be in webm container format.
+          if (buf.length > 0) {
+            audioChunks.push(new Uint8Array(buf));
           }
           break;
         case "vad":
@@ -62,40 +70,69 @@ export function startTranscription(httpServer: any, io: any) {
           break;
       }
 
-      async function flushAudio() {
-        const finalBuffer = Buffer.concat(audioChunks as readonly Uint8Array[]);
+      async function flushAudio(): Promise<void> {
+        const finalBuffer = Buffer.concat(audioChunks);
         console.log("Final audio buffer length:", finalBuffer.length);
-        if (finalBuffer.length < 1000) {
+        if (finalBuffer.length < 100) {
           console.log("Audio buffer is empty. Ignoring VAD event.");
           audioChunks = [];
           return;
         }
 
-        // Create the WAV file once here using the aggregated PCM data.
-        const wav = new WaveFile();
-        wav.fromScratch(1, 16000, "16", finalBuffer);
-        const wavBuffer = wav.toBuffer();
-        const tempFilename = `/tmp/${uuidv4()}.wav`;
+        // Write the aggregated WebM data to a temporary file.
+        const tempWebmFilename: string = `/tmp/${uuidv4()}.webm`;
+        writeFileSync(tempWebmFilename, finalBuffer as unknown as Uint8Array);
+
+        // Define a temporary filename for the converted WAV file.
+        const tempWavFilename: string = `/tmp/${uuidv4()}.wav`;
 
         try {
-          writeFileSync(tempFilename, wavBuffer);
-          const transcription = await transcribeWithWhisper(tempFilename);
+          // Convert the .webm file to a .wav file (raw PCM) using FFmpeg.
+          await convertWebmToWav(tempWebmFilename, tempWavFilename);
+          // Transcribe the converted WAV file using Whisper API.
+          const transcription = await transcribeWithWhisper(tempWavFilename);
           console.log("Whisper transcription:", transcription);
           io.emit("finalTranscription", transcription);
           transcriptionEmitter.emit("transcriptionReady", { processedText: transcription });
         } catch (err) {
-          console.error("Error transcribing with Whisper:", err);
+          console.error("Error converting/transcribing audio:", err);
         } finally {
           try {
-            unlinkSync(tempFilename);
-            console.log(`Temporary file ${tempFilename} deleted.`);
+            unlinkSync(tempWebmFilename);
+            unlinkSync(tempWavFilename);
+            console.log("Temporary files deleted.");
           } catch (cleanupErr) {
-            console.error("Error cleaning up temporary file:", cleanupErr);
+            console.error("Error cleaning up temporary files:", cleanupErr);
           }
         }
         audioChunks = [];
       }
     });
+  });
+}
+
+/**
+ * Converts a WebM file to a WAV file (PCM) using FFmpeg.
+ * @param inputFile - Path to the input WebM file.
+ * @param outputFile - Path to the output WAV file.
+ * @returns A Promise that resolves when conversion is complete.
+ */
+function convertWebmToWav(inputFile: string, outputFile: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    ffmpeg(inputFile)
+      .noVideo()
+      .audioChannels(1)
+      .audioFrequency(16000)
+      .toFormat("wav")
+      .on("end", () => {
+        console.log("Conversion to WAV completed.");
+        resolve();
+      })
+      .on("error", (err: Error) => {
+        console.error("Error during conversion:", err);
+        reject(err);
+      })
+      .save(outputFile);
   });
 }
 
@@ -114,7 +151,7 @@ async function transcribeWithWhisper(filePath: string): Promise<string> {
   const response = await axios.post("https://api.openai.com/v1/audio/transcriptions", form, {
     headers: {
       ...form.getHeaders(),
-      "Authorization": `Bearer ${O1_MINI_HIGH_API_KEY}`,
+      "Authorization": `Bearer ${API_KEY}`,
     },
   });
 
