@@ -8,25 +8,29 @@ export default function Chat() {
   const [messages, setMessages] = useState<string[]>([]);
   const [currentMessage, setCurrentMessage] = useState<string>("");
   const [predictions, setPredictions] = useState<any[]>([]);
-
+  const [notes, setNotes] = useState<any[]>([]);
+  
   useEffect(() => {
     // Listen for final transcription events.
     socket.on("finalTranscription", (data: string) => {
       console.log("Received final transcription:", data);
-      // When a final transcript comes in, push it into final messages.
       setMessages(prev => [...prev, data]);
       setCurrentMessage("");
     });
     // Listen for interim transcription events.
     socket.on("interimTranscription", (data: string) => {
       console.log("Received interim transcription:", data);
-      // Update the current message as new interim data arrives.
       setCurrentMessage(data);
     });
     // Listen for top3 emotions updates, etc.
     socket.on("top3emotionsUpdate", (data: any) => {
       console.log("Received sentiment update:", data);
       setPredictions(prev => [...prev, ...data]);
+    });
+    // Listen for generated notes events
+    socket.on("notesGenerated", (data: any) => {
+      console.log("Received generated notes:", data);
+      setNotes((prev) => [...prev, data]);
     });
     return () => {
       socket.off("finalTranscription");
@@ -56,6 +60,11 @@ export default function Chat() {
       </div>
       <div className="notes-container">
         <h3>Notes</h3>
+        {notes.map((note, index) => (
+          <div key={index} className="note-card">
+            {note.choices?.[0]?.message?.content || note}
+          </div>
+        ))}
       </div>
       <div className="sentiment-container">
         <h3>Sentiment</h3>

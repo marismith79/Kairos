@@ -1,9 +1,11 @@
 import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 import dotenv from "dotenv";
 import WebSocket from "ws";
+import { EventEmitter } from "events";
 import { humeSentiService } from "./humeSentiService.js";
 import pkg from "wavefile";
 import { AZURE_SPEECH_KEY, AZURE_REGION } from "./tools/config.js";
+export const transcriptionEmitter = new EventEmitter();
 const { WaveFile } = pkg;
 
 dotenv.config();
@@ -65,6 +67,7 @@ export function startTranscription(httpServer: any, io: any) {
           // Emit final transcription and (optionally) clear interim text on client.
           io.emit("finalTranscription", finalText);
           humeSentiService.sendTextData(finalText);
+          transcriptionEmitter.emit("transcriptionReady", { processedText: finalText });
         } else if (e.result.reason === sdk.ResultReason.NoMatch) {
           console.log("NOMATCH: Speech could not be recognized.");
         }
