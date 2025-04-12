@@ -24,7 +24,7 @@ class HumeSentiService {
   }
 
   /**
-   * Connects to Hume’s websocket endpoint.
+   * Connects to Hume's websocket endpoint.
    * @param apiKey - Your Hume API key.
    * @param onPrediction - Optional callback for handling prediction items.
    */
@@ -168,10 +168,26 @@ class HumeSentiService {
     const formatted = formatPredictions(normalizedPredictions);
 
     try {
-      await axios.post('http://localhost:3000/api/sentiment', { sentiments: formatted });
-      console.log("Sentiment data posted successfully");
+      // Split the data into sentiment and emotion streams
+      const sentimentData = formatted.map(prediction => ({
+        time: Date.now(),
+        sentiment: prediction.sentiment
+      }));
+
+      const emotionData = formatted.map(prediction => ({
+        emotions: prediction.emotions,
+        toxicity: prediction.toxicity
+      }));
+
+      // Send sentiment data to the sentiment endpoint
+      await axios.post('http://localhost:3000/api/sentiment', { sentiments: sentimentData });
+      
+      // Send emotion data to the chat endpoint
+      await axios.post('http://localhost:3000/api/chat', { emotions: emotionData });
+      
+      console.log("Data posted successfully to both endpoints");
     } catch (error) {
-      console.error("Failed to post sentiment data", error);
+      console.error("Failed to post data", error);
     }
   }
 

@@ -152,7 +152,7 @@ button:focus{
 }
 
 /************************************************************* STYLES FOR CHAT MESSGAES *************************************************************/
-/* Invisible container holding chat, analytics, and sentiment */
+/* Invisible container holding chat, notes, and sentiment */
 .container {
   display: flex;
   flex-direction: column;
@@ -162,28 +162,25 @@ button:focus{
   position: relative;
 }
 
-/* Ensure chat-container and analytics-container are the same height */
-.chat-container, .analytics-container{
+/* .sub-container {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
+  height: 80%; 
+  margin-top: 10px;
+  position: relative;
+} */
+
+.chat-container, .notes-container{
+  display: flex;
+  flex-direction: column;
+  justify-content: top;
   height: 50vh; 
   margin-top: 1vh;
+  padding-left: 2vh;
   margin-bottom: 1vh;
   border-radius: 21px;
   border: 0.5px solid #8f8f8f;
-}
-
-/* Styling for sentiment-container */
-.sentiment-container {
-  background-color: #f0f0f0;
-  padding: 2vh;
-  margin-top: 5vh;
-  margin-left: 20vh;
-  margin-right: 20vh;
-  height: 20vh;
-  border: 1px solid #8f8f8f;
-  border-radius: 21px;
 }
 
 .chat-container {
@@ -192,22 +189,31 @@ button:focus{
   display: flex;
   flex-direction: column; 
   position: relative;
-  justify-content: flex-start;  
-  align-items: center;  
-  width: 110vh;
+  width: 45%;
   overflow-x: hidden; 
   overflow-y: auto;
 }
 
-.analytics-container {
-  background-color: rgb(255, 221, 255);
+.notes-container {
+  background-color: #F0F0F0;
   margin-right: 20vh;
-  width: 25vh;
+  width: 25%;
   display: flex;
   flex-direction: column;
-  align-items: center;
   position: absolute;
   right: 0;
+}
+
+.sentiment-container {
+  background-color: #EBF1FF;
+  padding: 2vh;
+  margin-top: 5vh;
+  margin-left: 20vh;
+  margin-right: 20vh;
+  justify-content: bottom;
+  height: 20vh;
+  border: 1px solid #8f8f8f;
+  border-radius: 21px;
 }
 
 .controls {
@@ -232,15 +238,14 @@ button:focus{
 }
 .chat-card {
   margin: 10px;
-  background-color: #A5D5FF;
+  background-color: #FFE2A5;
   align-self: flex-end; 
   border-radius: 15px;
   padding: 15px;
-  width: 66.67%;  
+  width: 60%;  
   max-width: 100%;
   display: flex;
   flex-direction: column;
-
   max-height: 66vh;    
 }
 
@@ -262,24 +267,6 @@ button:focus{
 
 }
 
-.messag-body {
-  margin: 5px;
-  border-radius: 15px;
-  padding: 20px;
-}
-
-.scores {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
-
-.logger-container {
-  flex: 1; /* This makes it take up 1 part of the available space */
-  display: flex;
-  flex-direction: column;
-}
-
 .message-container {
   flex: 2; /* This makes it take up 2 parts of the available space */
   display: flex;
@@ -291,7 +278,7 @@ button:focus{
   margin-bottom: 10px;
   background: white;
   border-radius: 8px;
-  border-top: 1px solid transparent;  /* Add this line */
+  border-top: 1px solid transparent;  
 }
 
 /* Add this to your App.css */
@@ -352,4 +339,10 @@ button:focus{
   aspect-ratio: 1 / 1;            
   border-radius: 50%;             
   object-fit: cover;              
+}
+
+.sentiment-chart {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }

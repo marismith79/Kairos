@@ -8,7 +8,7 @@ import cors from "cors";
 import { Server as SocketIOServer } from "socket.io";
 import http from "http";
 import { startTranscription } from "./transcription.js";
-import { formatPredictions } from "./tools/predictionFormatter.js";
+
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -114,8 +114,15 @@ app.post("/", (req, res) => {
 
 app.post("/api/sentiment", (req: Request, res: Response) => {
   console.log("POST /api/sentiment endpoint hit");
-  const formatted = req.body.sentiments;
-  io.emit("sentimentUpdate", formatted);
+  const s_formatted = req.body.sentiments;
+  io.emit("sentimentUpdate", s_formatted);
+  res.sendStatus(200);
+});
+
+app.post("/api/chat", (req: Request, res: Response) => {
+  console.log("POST /api/chat endpoint hit");
+  const e_formatted = req.body.emotions;
+  io.emit("top3emotionsUpdate", e_formatted);
   res.sendStatus(200);
 });
 

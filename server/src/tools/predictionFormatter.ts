@@ -7,7 +7,7 @@ export interface RawPrediction {
   }
   
   export interface FormattedPrediction {
-    // A single number from 1 to 9 (1 = positive, 5 = neutral, 9 = negative)
+    // A single number from 1 to 9 (1 = negative, 5 = neutral, 9 = positive)
     sentiment: number;
     // Top three emotion names based on score
     emotions: string[];
@@ -22,7 +22,6 @@ export interface RawPrediction {
     raw.sentiment.forEach((bucket, index) => {
       if (bucket.score > maxSentimentScore) {
         maxSentimentScore = bucket.score;
-        // Use the bucket's position in the array (1-indexed) as the sentiment value.
         sentimentValue = index + 1;
       }
     });
