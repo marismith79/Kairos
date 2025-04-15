@@ -8,8 +8,7 @@ import cors from "cors";
 import { Server as SocketIOServer } from "socket.io";
 import http from "http";
 import { startTranscription } from "./transcription.js";
-
-
+import { initializeGenerative } from "./generative.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -88,6 +87,9 @@ const io = new SocketIOServer(server, {
   }
 });
 
+// Initialize modules that need Socket.IO
+initializeGenerative(io);
+
 // Listen for new client connections.
 io.on('connection', (socket) => {
   console.log('New client connected');
@@ -106,7 +108,7 @@ app.post("/", (req, res) => {
       <Start>
         <Stream url="wss://${req.headers.host}/"/>
       </Start>
-      <Say>I will stream the next 60 seconds of audio through your websocket</Say>
+      <Say>Stream started</Say>
       <Pause length="60" />
     </Response>
   `);

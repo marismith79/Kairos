@@ -1,15 +1,58 @@
-import { transcriptionEmitter } from './transcription.js';
+import { sharedEmitter } from './tools/emitter.js';
 import fetch from 'node-fetch';
 import { AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY } from './tools/config.js';
-import { EventEmitter } from "events";
-export const notesEmitter = new EventEmitter();
+import { Server as SocketIOServer } from "socket.io";
 
-const promptTemplate = "Based on the following conversation, generate important notes highlighting key information points: \n\n";
-const temperature = 1;
-const maxTokens = 450;
+let io: SocketIOServer;
+
+export function initializeGenerative(socketIO: SocketIOServer) {
+  io = socketIO;
+  console.log("[generative.ts] Socket.IO initialized");
+}
+
+const promptTemplate = `Based on the following conversation, generate ONLY key information points that are explicitly mentioned or strongly implied. 
+Rules:
+1. Only include information that is clearly present in the conversation
+2. Do not make assumptions or inferences
+3. Keep each point brief and specific
+4. Do not include redundant or duplicate information
+5. Do not include obvious or trivial observations
+6. Format as a simple bulleted list without sections or headers
+7. If no meaningful information is present, simply respond with "No key information points identified."
+
+Conversation:\n\n`;
+const temperature = 0.7;
+const maxTokens = 200;
 
 let conversationHistory = "";
 const MAX_HISTORY_LENGTH = 5000;
+
+/**
+ * Cleans and formats the generated notes to remove redundancy and improve readability.
+ * @param notes The raw notes string to clean.
+ * @returns A cleaned and formatted version of the notes.
+ */
+function cleanGeneratedNotes(notes: string): string {
+  // Remove empty lines
+  const lines = notes.split('\n').filter(line => line.trim());
+  
+  // Remove redundant information
+  const uniqueLines = [...new Set(lines)];
+  
+  // Join back with proper formatting
+  return uniqueLines.join('\n');
+}
+
+/**
+ * Determines if the new text contains enough meaningful content to generate notes.
+ * @param newText The new transcription text to evaluate.
+ * @returns boolean indicating whether notes should be generated.
+ */
+function shouldGenerateNotes(newText: string): boolean {
+  // Only generate notes if the new text adds meaningful information
+  const meaningfulThreshold = 20; // Minimum characters for meaningful content
+  return newText.length > meaningfulThreshold;
+}
 
 /**
  * Sends the prompt to Azure OpenAI API using chat completions.
@@ -38,6 +81,7 @@ async function callAzureOpenAI(prompt: string): Promise<any> {
     throw new Error(`Azure OpenAI API error: ${errorText}`);
   }
 
+  console.log("[callAzureOpenAI] Successfully received response from API");
   return response.json();
 }
 
@@ -47,38 +91,61 @@ async function callAzureOpenAI(prompt: string): Promise<any> {
  * @param newText The latest transcribed text.
  */
 async function handleTranscription(newText: string) {
+  console.log("[handleTranscription] Received new transcription text:", newText);
+  
+  // Check if the new text is meaningful enough to generate notes
+  if (!shouldGenerateNotes(newText)) {
+    console.log("[handleTranscription] Text too short, skipping note generation");
+    return;
+  }
+  
   // Append the latest transcription with a newline separator.
   conversationHistory += "\n" + newText;
+  console.log("[handleTranscription] Updated conversation history length:", conversationHistory.length);
 
   // Trim the conversation history if it exceeds the max length.
   if (conversationHistory.length > MAX_HISTORY_LENGTH) {
+    console.log("[handleTranscription] Trimming conversation history to max length...");
     conversationHistory = conversationHistory.slice(-MAX_HISTORY_LENGTH);
+    console.log("[handleTranscription] New conversation history length:", conversationHistory.length);
   }
 
   // Create the full prompt using the accumulated conversation history.
   const prompt = promptTemplate + conversationHistory;
-  console.log("Sending prompt to Azure OpenAI:", prompt);
+  console.log("[handleTranscription] Created full prompt for note generation");
 
   try {
+    console.log("[handleTranscription] Calling Azure OpenAI API for note generation...");
     const notesResponse = await callAzureOpenAI(prompt);
-    console.log("Generated Notes:", notesResponse);
-    notesEmitter.emit("notesGenerated", notesResponse);
-    // Here we could emit an event, stream the notes to a client via websockets, or integrate into your UI.
+    console.log("[handleTranscription] Generated Notes Response:", notesResponse);
+    
+    // Clean the generated notes before emitting
+    const cleanedNotes = cleanGeneratedNotes(notesResponse.choices[0].message.content);
+    console.log("[handleTranscription] Cleaned notes:", cleanedNotes);
+    
+    console.log("[handleTranscription] Emitting notes to clients...");
+    if (io) {
+      io.emit("notesGenerated", { choices: [{ message: { content: cleanedNotes } }] });
+    } else {
+      console.error("[handleTranscription] Socket.IO not initialized");
+    }
   } catch (error) {
-    console.error("Error generating notes:", error);
+    console.error("[handleTranscription] Error generating notes:", error);
   }
 }
 
 // Listen for transcription events and handle them.
-// This assumes your event emits an object with a 'processedText' property.
-transcriptionEmitter.on('transcriptionReady', async (data: { processedText: string }) => {
-  await handleTranscription(data.processedText);
+console.log("[generative.ts] Setting up transcriptionReady listener");
+sharedEmitter.on('transcriptionReady', async ( data: { finalText: string } ) => {
+  console.log("[generative.ts] Received transcriptionReady event with data:", data);
+  await handleTranscription(data.finalText);
 });
 
 /**
  * Optionally, you might want to clear the conversation history at the end of a call.
  */
 export function clearConversationHistory() {
+  console.log("[clearConversationHistory] Clearing conversation history");
   conversationHistory = "";
 }
 
