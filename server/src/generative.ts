@@ -18,7 +18,8 @@ Rules:
 4. Do not include redundant or duplicate information
 5. Do not include obvious or trivial observations
 6. Format as a simple bulleted list without sections or headers
-7. If no meaningful information is present, simply respond with "No key information points identified."
+7. If no meaningful information is present, simply do not output any text
+8. Use pronouns to refer to the speaker in the notes
 
 Conversation:\n\n`;
 const temperature = 0.7;
