@@ -41,8 +41,7 @@ import WebSocket from "ws";
 import { humeSentiService } from "./humeSentiService.js";
 import pkg from "wavefile";
 import { AZURE_SPEECH_KEY, AZURE_REGION } from "./tools/config.js";
-import { sharedEmitter } from "./tools/emitter.js";
-
+import { transcriptionEmitter } from "./tools/emitter.js";
 const { WaveFile } = pkg;
 
 dotenv.config();
@@ -82,6 +81,7 @@ export function startTranscription(httpServer: any, io: any) {
     // These variables are per-connection (or per-call)
     let pushStream: sdk.AudioInputStream | null = null;
     let transcriber: sdk.ConversationTranscriber | null = null;
+    let callTranscript = ""; // Add variable to accumulate transcript
 
     // Function to initialize the push stream and transcriber for the current call.
     function initializeTranscriber() {
@@ -160,6 +160,9 @@ export function startTranscription(httpServer: any, io: any) {
           const speakerId = e.result.speakerId;
           
           console.log(`FINAL (Speaker ${speakerId}): ${finalText}`);
+          
+          // Accumulate the transcript
+          callTranscript += `\n${speakerId}: ${finalText}`;
           
           const transcriptionData = {
             bubbleId: currentSpeakingState.currentBubbleId,
@@ -262,6 +265,8 @@ export function startTranscription(httpServer: any, io: any) {
             transcriber.stopTranscribingAsync();
             transcriber = null;
           }
+          // Emit the complete transcript when call ends
+          transcriptionEmitter.emit("callEnded", { completeTranscript: callTranscript });
           break;
       }
     });
