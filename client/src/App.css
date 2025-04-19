@@ -207,41 +207,6 @@ button:focus{
   padding-right: 10px;
 }
 
-.notes-buttons-container {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-top: auto;
-  padding: 10px;
-}
-
-.edit-button {
-  background-color: #FF7B7B;
-  color: black;
-  border: none;
-  padding: 8px 24px;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s ease;
-}
-
-.submit-button {
-  background-color: #B4EBCA;
-  color: black;
-  border: none;
-  padding: 8px 24px;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s ease;
-}
-
-/* Remove the hover effects from previous styles */
-.edit-button:hover, .submit-button:hover {
-  background-color: inherit;
-}
-
 .notes-container::-webkit-scrollbar {
   width: 1px;
 }
@@ -423,14 +388,7 @@ button:focus{
   min-height: 100px;
   font-family: inherit;
   font-size: inherit;
-  background-color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.note-content-edit:focus {
-  outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  text-align: left;
 }
 
 .notes-container button {

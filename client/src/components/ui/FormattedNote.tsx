@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 interface FormattedNoteProps {
   content: string;
@@ -7,13 +7,6 @@ interface FormattedNoteProps {
 }
 
 export const FormattedNote: React.FC<FormattedNoteProps> = ({ content, isEditing, onEdit }) => {
-  const [localContent, setLocalContent] = useState(content);
-
-  // Update local content when prop changes
-  useEffect(() => {
-    setLocalContent(content);
-  }, [content]);
-
   // Function to clean and format note content
   const formatNoteContent = (content: string) => {
     // Split content into sections based on headers
@@ -35,26 +28,19 @@ export const FormattedNote: React.FC<FormattedNoteProps> = ({ content, isEditing
     });
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newValue = e.target.value;
-    setLocalContent(newValue);
-    onEdit(newValue);
-  };
-
   if (isEditing) {
     return (
       <textarea
-        value={localContent}
-        onChange={handleChange}
+        value={content}
+        onChange={(e) => onEdit(e.target.value)}
         className="note-content-edit"
-        autoFocus
       />
     );
   }
 
   return (
     <div className="note-content">
-      {formatNoteContent(localContent)}
+      {formatNoteContent(content)}
     </div>
   );
 }; 
