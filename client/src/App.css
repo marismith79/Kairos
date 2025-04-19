@@ -261,6 +261,18 @@ button:focus{
   max-height: 66vh;    
 }
 
+.chat-card.left {
+  align-self: flex-start;
+  background-color: #E3F2FD; /* different color for Guest-1 */
+  border-bottom-left-radius: 4px;
+}
+
+.chat-card.right {
+  align-self: flex-end;
+  background-color: #FFE2A5; /* different color for Guest-2 */
+  border-bottom-right-radius: 4px;
+}
+
 .message-header {
   display: flex;
   flex-direction: row;
