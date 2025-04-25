@@ -9,6 +9,7 @@ import { Server as SocketIOServer } from "socket.io";
 import http from "http";
 import { startTranscription } from "./transcription.js";
 import { initializeGenerative } from "./generative.js";
+import { predictionAccumulator } from "./tools/predictionAccumulator.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -130,6 +131,7 @@ app.post("/api/chat", (req: Request, res: Response) => {
 
 humeSentiService.connect(process.env.HUME_API_KEY!, (predictions) => {
   // console.log("Received predictions from Hume:", predictions);
+  predictionAccumulator.addPredictions(predictions);
 });
 
 // Adjust index.html path based on environment
