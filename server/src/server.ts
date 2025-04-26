@@ -10,8 +10,7 @@ import http from "http";
 import { startTranscription } from "./transcription.js";
 import twilio from 'twilio';
 const { VoiceResponse } = twilio.twiml;
-
-const MODERATOR = "+19497763549";
+import { initializeGenerative } from "./generative.js";const MODERATOR = "+19497763549";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -93,6 +92,9 @@ const io = new SocketIOServer(server, {
     methods: ["GET", "POST"],
   },
 });
+
+// Initialize modules that need Socket.IO
+initializeGenerative(io);
 
 // Listen for new client connections.
 io.on("connection", (socket) => {
