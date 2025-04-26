@@ -10,7 +10,10 @@ import http from "http";
 import { startTranscription } from "./transcription.js";
 import twilio from 'twilio';
 const { VoiceResponse } = twilio.twiml;
-import { initializeGenerative } from "./generative.js";const MODERATOR = "+19497763549";
+
+const MODERATOR = "+19497763549";
+import { initializeGenerative } from "./generative.js";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -109,12 +112,13 @@ app.get("/", (req, res) => {
 });
 
 app.post("/", (req, res) => {
-  console.log("")
+  console.log("Incoming call from:", req.body.From);
   const twiml = new VoiceResponse();
 
-  // Start streaming
+  // Start streaming - each caller gets their own stream
   twiml.start().stream({
     url: `wss://${req.headers.host}/stream`,
+    track: "inbound_track", // Track the inbound audio
   });
 
   // Add a short message and pause
@@ -127,11 +131,28 @@ app.post("/", (req, res) => {
     startConferenceOnEnter: true,
     endConferenceOnExit: true,
     waitUrl: "", // no hold music
+    statusCallback: "/conference-events", // Optional: track conference events
   }, "MyConferenceRoom");
 
   res.type("text/xml");
   res.send(twiml.toString());
-  console.log(`Twiml: ${twiml.toString()}`);
+  console.log(`Twiml for ${req.body.From}: ${twiml.toString()}`);
+});
+
+// Handle conference events
+app.post("/conference-events", (req: Request, res: Response) => {
+  console.log("Conference event received:", req.body);
+  
+  // Log the event details
+  const eventType = req.body.StatusCallbackEvent;
+  const conferenceSid = req.body.ConferenceSid;
+  const callSid = req.body.CallSid;
+  const participantIdentifier = req.body.From || req.body.To || "Unknown";
+  
+  console.log(`Conference event: ${eventType} for call ${callSid} (${participantIdentifier}) in conference ${conferenceSid}`);
+  
+  // Send a 200 OK response
+  res.sendStatus(200);
 });
 
 app.post("/api/sentiment", (req: Request, res: Response) => {

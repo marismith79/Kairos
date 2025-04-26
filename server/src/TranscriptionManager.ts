@@ -14,21 +14,22 @@ export class TranscriptionManager {
   private currentSpeakingState: SpeakingState;
   private io: SocketIOServer;
   private isTranscribing: boolean = false;
+  private phoneNumber: string = ""; // Store the phone number associated with the current stream
 
   /**
    * Creates a new TranscriptionManager instance.
-   * 
+   *
    * @param io - The Socket.IO server for emitting events to clients
    */
   constructor(io: SocketIOServer) {
     this.io = io;
     this.currentSpeakingState = this.getInitialSpeakingState();
-    console.log("TranscriptionManager initialized");
+    console.log("TranscriptionManager initialized for this web socket connection, the underlying transcriber will be created once I receive a start signal...");
   }
 
   /**
    * Gets the current push stream.
-   * 
+   *
    * @returns The current push stream or null if not initialized
    */
   public getPushStream(): sdk.AudioInputStream | null {
@@ -36,25 +37,16 @@ export class TranscriptionManager {
   }
 
   /**
-   * Writes audio data to the push stream for transcription.
-   * 
-   * @param audioData - The audio data buffer to write
-   */
-  public writeToPushStream(audioData: ArrayBuffer): void {
-    if (this.pushStream && this.isTranscribing) {
-      try {
-        (this.pushStream as sdk.PushAudioInputStream).write(audioData);
-      } catch (error) {
-        console.error("Error writing to push stream:", error);
-      }
-    }
-  }
-
-  /**
    * Initializes the transcriber for a new call.
+   * 
+   * @param phoneNumber - The phone number associated with the current stream
    */
-  public initializeTranscriber(): void {
+  public initializeTranscriber(phoneNumber?: string): void {
     try {
+      if (phoneNumber) {
+        this.phoneNumber = phoneNumber;
+        console.log(`Using phone number ${phoneNumber} as speaker ID`);
+      }
       this.setupTranscriber();
       this.registerTranscriberEvents();
       this.isTranscribing = true;
@@ -66,12 +58,12 @@ export class TranscriptionManager {
 
   /**
    * Gets the initial speaking state.
-   * 
+   *
    * @returns The initial speaking state
    */
   private getInitialSpeakingState(): SpeakingState {
     return {
-      speakerId: "",
+      speakerId: this.phoneNumber || "", // Use phone number as speaker ID if available
       lastUpdateTime: Date.now(),
       isActive: false,
       currentBubbleId: "",
@@ -84,12 +76,14 @@ export class TranscriptionManager {
   private setupTranscriber(): void {
     // Get speech config from the config module
     const speechConfig: sdk.SpeechConfig = initializeSpeechConfig();
-    
+    speechConfig.speechRecognitionLanguage = "en-US";
+    speechConfig.enableDictation(); // Enable dictation mode for better continuous speech recognition
+
     // Create a push stream for audio input
     this.pushStream = sdk.AudioInputStream.createPushStream(
       sdk.AudioStreamFormat.getWaveFormatPCM(8000, 16, 1)
     );
-    
+
     // Create audio config from the push stream
     const audioConfig = sdk.AudioConfig.fromStreamInput(this.pushStream);
 
@@ -98,7 +92,7 @@ export class TranscriptionManager {
       speechConfig,
       audioConfig
     );
-    
+
     console.log("Transcriber setup complete");
   }
 
@@ -108,27 +102,28 @@ export class TranscriptionManager {
   public async cleanup(): Promise<void> {
     console.log("Cleaning up transcription resources");
     this.isTranscribing = false;
-    
+    this.phoneNumber = ""; // Reset the phone number
+
     if (this.transcriber) {
       try {
         await this.transcriber.stopTranscribingAsync();
         this.transcriber = null;
         console.log("Transcriber stopped successfully");
       } catch (error) {
-        console.error('Error stopping transcriber:', error);
+        console.error("Error stopping transcriber:", error);
       }
     }
-    
+
     if (this.pushStream) {
       try {
         (this.pushStream as sdk.PushAudioInputStream).close();
         this.pushStream = null;
         console.log("Push stream closed successfully");
       } catch (error) {
-        console.error('Error closing push stream:', error);
+        console.error("Error closing push stream:", error);
       }
     }
-    
+
     this.currentSpeakingState = this.getInitialSpeakingState();
   }
 
@@ -143,32 +138,35 @@ export class TranscriptionManager {
 
     // Handle interim transcription results
     this.transcriber.transcribing = this.handleInterimTranscription.bind(this);
-    
+
     // Handle final transcription results
     this.transcriber.transcribed = this.handleFinalTranscription.bind(this);
-    
+
     // Handle cancellation events
     this.transcriber.canceled = (s, e) => {
       console.log(`CANCELED: Reason=${e.reason}`);
       if (e.reason === sdk.CancellationReason.Error) {
         console.log(`CANCELED: ErrorCode=${e.errorCode}`);
         console.log(`CANCELED: ErrorDetails=${e.errorDetails}`);
-        console.log("CANCELED: Did you update the key and location/region info?");
+        console.log(
+          "CANCELED: Did you update the key and location/region info?"
+        );
       }
     };
-    
+
     // Handle session stopped events
     this.transcriber.sessionStopped = (s, e) => {
       console.log("Session stopped event.");
     };
-    
+
     // Start continuous transcription
     this.transcriber.startTranscribingAsync(
       () => {
-        console.log("Continuous transcription started");
+        console.log("Continuous transcription started successfully");
       },
       (err) => {
         console.error("Error starting transcription:", err);
+        console.error("Error details:", JSON.stringify(err, null, 2));
         if (this.transcriber) {
           this.transcriber.close();
         }
@@ -178,11 +176,12 @@ export class TranscriptionManager {
 
   /**
    * Handles interim transcription results.
-   * 
+   *
    * @param s - The sender
    * @param e - The event arguments
    */
   private handleInterimTranscription(s: any, e: any): void {
+    console.log("Interim transcription received:", e.result.text);
     if (e.result) {
       const interimText = e.result.text;
       const currentTime = Date.now();
@@ -196,9 +195,10 @@ export class TranscriptionManager {
         !this.currentSpeakingState.isActive ||
         currentTime - this.currentSpeakingState.lastUpdateTime > 1500
       ) {
-        // Update speaking state for a new speech segment
+        // Always use the phone number as the speaker ID
+        // This is the key change to ensure we're using the phone number instead of diarization
         this.currentSpeakingState = {
-          speakerId: e.result.speakerId || "Speaker1", // Fallback to default speaker
+          speakerId: this.phoneNumber, // Always use phone number as speaker ID
           lastUpdateTime: currentTime,
           isActive: true,
           currentBubbleId: newBubbleId,
@@ -207,14 +207,16 @@ export class TranscriptionManager {
         // Emit event for new speech segment
         this.io.emit("startTranscription", {
           bubbleId: newBubbleId,
-          speakerId: this.currentSpeakingState.speakerId,
+          speakerId: this.phoneNumber, // Always use phone number as speaker ID
           text: interimText,
           isInterim: true,
           timestamp: new Date().toISOString(),
-          source: "conference" // Indicate this is from a conference call
+          source: "conference", // Indicate this is from a conference call
         });
-        
-        console.log(`New speech segment (${this.currentSpeakingState.speakerId}): ${interimText}`);
+
+        console.log(
+          `New speech segment (${this.phoneNumber}): ${interimText}`
+        );
       } else {
         // Update existing speech segment
         this.currentSpeakingState.lastUpdateTime = currentTime;
@@ -222,11 +224,11 @@ export class TranscriptionManager {
         // Emit event for updated speech segment
         this.io.emit("interimTranscription", {
           bubbleId: this.currentSpeakingState.currentBubbleId,
-          speakerId: this.currentSpeakingState.speakerId,
+          speakerId: this.phoneNumber, // Always use phone number as speaker ID
           text: interimText,
           isInterim: true,
           timestamp: new Date().toISOString(),
-          source: "conference" // Indicate this is from a conference call
+          source: "conference", // Indicate this is from a conference call
         });
       }
     }
@@ -234,14 +236,17 @@ export class TranscriptionManager {
 
   /**
    * Handles final transcription results.
-   * 
+   *
    * @param s - The sender
    * @param e - The event arguments
    */
   private handleFinalTranscription(s: any, e: any): void {
     if (e.result) {
       const finalText = e.result.text;
-      const speakerId = e.result.speakerId || this.currentSpeakingState.speakerId;
+      
+      // Always use the phone number as the speaker ID
+      // This is the key change to ensure we're using the phone number instead of diarization
+      const speakerId = this.phoneNumber;
 
       console.log(`FINAL (Speaker ${speakerId}): ${finalText}`);
 
@@ -252,10 +257,10 @@ export class TranscriptionManager {
           .toString(36)
           .substr(2, 9)}`,
         text: finalText,
-        speakerId: speakerId,
+        speakerId: speakerId, // Always use phone number as speaker ID
         isInterim: false,
         timestamp: new Date().toISOString(),
-        source: "conference" // Indicate this is from a conference call
+        source: "conference", // Indicate this is from a conference call
       };
 
       // Emit final transcription event
@@ -268,7 +273,7 @@ export class TranscriptionManager {
 
       // Reset speaking state
       this.currentSpeakingState = {
-        speakerId: "",
+        speakerId: this.phoneNumber, // Always use phone number as speaker ID
         lastUpdateTime: Date.now(),
         isActive: false,
         currentBubbleId: "",
