@@ -8,9 +8,10 @@ import cors from "cors";
 import { Server as SocketIOServer } from "socket.io";
 import http from "http";
 import { startTranscription } from "./transcription.js";
+import twilio from 'twilio';
+const { VoiceResponse } = twilio.twiml;
 
-
-
+const MODERATOR = "+19497763549";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -28,14 +29,19 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 
 // Enable CORS middleware
-app.use(cors({
-  origin: 'http://localhost:5173',
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type'],
-}));
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
 
 // Parse JSON bodies
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // For parsing URL-encoded bodies
+// // If you're using webhooks (which Twilio uses), you might need raw body parsing
+// app.use(express.raw({ type: "application/json" }));
 
 // Adjust static file path based on environment
 const clientPath = isProduction
@@ -53,7 +59,7 @@ app.get("/api/v1", (req: Request, res: Response) => {
 app.get("/api/getHumeAccessToken", async (req: Request, res: Response) => {
   const apiKey = process.env.HUME_API_KEY;
   const secretKey = process.env.HUME_SECRET_KEY;
-  
+
   if (!apiKey || !secretKey) {
     return res.status(500).json({
       error: "Hume API key or Secret key is missing on the server.",
@@ -85,31 +91,45 @@ const io = new SocketIOServer(server, {
   cors: {
     origin: "http://localhost:5173",
     methods: ["GET", "POST"],
-  }
+  },
 });
 
 // Listen for new client connections.
-io.on('connection', (socket) => {
-  console.log('New client connected');
+io.on("connection", (socket) => {
+  console.log("New client connected");
 });
 
 //Handle Twilio call events Request
 startTranscription(server, io);
 
-app.get("/", (req, res) => res.send("Hello World"));
+app.get("/", (req, res) => {
+  res.send("Hello World");
+});
 
 app.post("/", (req, res) => {
-  res.set("Content-Type", "text/xml");
+  console.log("")
+  const twiml = new VoiceResponse();
 
-  res.send(`
-    <Response>
-      <Start>
-        <Stream url="wss://${req.headers.host}/"/>
-      </Start>
-      <Say>I will stream the next 60 seconds of audio through your websocket</Say>
-      <Pause length="60" />
-    </Response>
-  `);
+  // Start streaming
+  twiml.start().stream({
+    url: `wss://${req.headers.host}/stream`,
+  });
+
+  // Add a short message and pause
+  twiml.say("You will be placed into the conference.");
+  twiml.pause({ length: 2 });
+
+  // Then dial into the conference
+  const dial = twiml.dial();
+  dial.conference({
+    startConferenceOnEnter: true,
+    endConferenceOnExit: true,
+    waitUrl: "", // no hold music
+  }, "MyConferenceRoom");
+
+  res.type("text/xml");
+  res.send(twiml.toString());
+  console.log(`Twiml: ${twiml.toString()}`);
 });
 
 app.post("/api/sentiment", (req: Request, res: Response) => {
@@ -140,5 +160,7 @@ app.get("*", (req: Request, res: Response) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}, env port is ${process.env.PORT}`);
+  console.log(
+    `Server running on http://localhost:${PORT}, env port is ${process.env.PORT}`
+  );
 });
