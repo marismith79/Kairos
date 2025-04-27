@@ -8,6 +8,10 @@ import cors from "cors";
 import { Server as SocketIOServer } from "socket.io";
 import http from "http";
 import { startTranscription } from "./transcription.js";
+import twilio from 'twilio';
+const { VoiceResponse } = twilio.twiml;
+
+const MODERATOR = "+19497763549";
 import { initializeGenerative } from "./generative.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -27,14 +31,19 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 
 // Enable CORS middleware
-app.use(cors({
-  origin: 'http://localhost:5173',
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type'],
-}));
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
 
 // Parse JSON bodies
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // For parsing URL-encoded bodies
+// // If you're using webhooks (which Twilio uses), you might need raw body parsing
+// app.use(express.raw({ type: "application/json" }));
 
 // Adjust static file path based on environment
 const clientPath = isProduction
@@ -52,7 +61,7 @@ app.get("/api/v1", (req: Request, res: Response) => {
 app.get("/api/getHumeAccessToken", async (req: Request, res: Response) => {
   const apiKey = process.env.HUME_API_KEY;
   const secretKey = process.env.HUME_SECRET_KEY;
-  
+
   if (!apiKey || !secretKey) {
     return res.status(500).json({
       error: "Hume API key or Secret key is missing on the server.",
@@ -84,34 +93,66 @@ const io = new SocketIOServer(server, {
   cors: {
     origin: "http://localhost:5173",
     methods: ["GET", "POST"],
-  }
+  },
 });
 
 // Initialize modules that need Socket.IO
 initializeGenerative(io);
 
 // Listen for new client connections.
-io.on('connection', (socket) => {
-  console.log('New client connected');
+io.on("connection", (socket) => {
+  console.log("New client connected");
 });
 
 //Handle Twilio call events Request
 startTranscription(server, io);
 
-app.get("/", (req, res) => res.send("Hello World"));
+app.get("/", (req, res) => {
+  res.send("Hello World");
+});
 
 app.post("/", (req, res) => {
-  res.set("Content-Type", "text/xml");
+  console.log("Incoming call from:", req.body.From);
+  const twiml = new VoiceResponse();
 
-  res.send(`
-    <Response>
-      <Start>
-        <Stream url="wss://${req.headers.host}/"/>
-      </Start>
-      <Say>Stream started</Say>
-      <Pause length="60" />
-    </Response>
-  `);
+  // Start streaming - each caller gets their own stream
+  twiml.start().stream({
+    url: `wss://${req.headers.host}/stream`,
+    track: "inbound_track", // Track the inbound audio
+  });
+
+  // Add a short message and pause
+  twiml.say("You will be placed into the conference.");
+  twiml.pause({ length: 2 });
+
+  // Then dial into the conference
+  const dial = twiml.dial();
+  dial.conference({
+    startConferenceOnEnter: true,
+    endConferenceOnExit: true,
+    waitUrl: "", // no hold music
+    statusCallback: "/conference-events", // Optional: track conference events
+  }, "MyConferenceRoom");
+
+  res.type("text/xml");
+  res.send(twiml.toString());
+  console.log(`Twiml for ${req.body.From}: ${twiml.toString()}`);
+});
+
+// Handle conference events
+app.post("/conference-events", (req: Request, res: Response) => {
+  console.log("Conference event received:", req.body);
+  
+  // Log the event details
+  const eventType = req.body.StatusCallbackEvent;
+  const conferenceSid = req.body.ConferenceSid;
+  const callSid = req.body.CallSid;
+  const participantIdentifier = req.body.From || req.body.To || "Unknown";
+  
+  console.log(`Conference event: ${eventType} for call ${callSid} (${participantIdentifier}) in conference ${conferenceSid}`);
+  
+  // Send a 200 OK response
+  res.sendStatus(200);
 });
 
 app.post("/api/sentiment", (req: Request, res: Response) => {
@@ -142,5 +183,7 @@ app.get("*", (req: Request, res: Response) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}, env port is ${process.env.PORT}`);
+  console.log(
+    `Server running on http://localhost:${PORT}, env port is ${process.env.PORT}`
+  );
 });
