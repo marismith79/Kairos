@@ -6,3 +6,4 @@ server/dist
 server/.env
 app.zip
 .env
+devfile.yaml

@@ -29,4 +29,12 @@ export interface StreamModelPredictionsLanguage {
   export interface Toxicity {
     score?: number;
   }
+
+  export interface SpeakingState {
+    speakerId: string;
+    lastUpdateTime: number;
+    isActive: boolean;
+    currentBubbleId: string;
+}
+
   

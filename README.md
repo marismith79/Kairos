@@ -76,3 +76,29 @@ Phone Number: (949) 776-3549
 
 <h2>Limitation</h2>
 i was not able to map "/" because then localhost:3000/ is used
+
+<h2>Multi-Caller Conference Support</h2>
+
+The system now supports multiple callers in a conference call with proper speaker identification. Each caller's audio stream is processed separately, and their phone number is used as the speaker ID for transcription.
+
+<h3>Key Features</h3>
+
+- Each caller in the conference gets their own dedicated transcription stream
+- Phone numbers are used as speaker IDs instead of relying on diarization
+- Transcriptions are properly attributed to the correct speaker
+- Conference events are tracked for better call management
+
+<h3>Implementation Details</h3>
+
+1. **WebSocketHandler**: Now maintains a map of TranscriptionManager instances, one for each caller
+2. **TranscriptionManager**: Uses the caller's phone number as the speaker ID throughout the transcription process
+3. **Twilio Configuration**: Each caller's stream is tracked separately with the `track` parameter
+4. **Conference Events**: A new endpoint `/conference-events` tracks conference participation
+
+<h3>Performance Benefits</h3>
+
+- Reduced latency by eliminating the need for speaker diarization
+- More accurate speaker identification
+- Better handling of overlapping speech
+- Improved scalability for multiple participants
+
