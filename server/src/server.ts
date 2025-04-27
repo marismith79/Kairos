@@ -171,7 +171,7 @@ app.post("/api/chat", (req: Request, res: Response) => {
 });
 
 humeSentiService.connect(process.env.HUME_API_KEY!, (predictions) => {
-  // console.log("Received predictions from Hume:", predictions);
+  console.log("Received predictions from Hume:", predictions);
   predictionAccumulator.addPredictions(predictions);
 });
 

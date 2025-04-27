@@ -3,6 +3,9 @@ import { SpeakingState } from "./tools/models";
 import { initializeSpeechConfig } from "./tools/config.js";
 import { humeSentiService } from "./humeSentiService.js";
 import { Server as SocketIOServer } from "socket.io";
+import { transcriptionEmitter} from "./tools/emitter.js"
+import { predictionAccumulator } from './tools/predictionAccumulator.js';
+import { generateNotes } from "./generative.js";
 
 /**
  * TranscriptionManager class handles the speech-to-text transcription process.
@@ -103,6 +106,17 @@ export class TranscriptionManager {
     console.log("Cleaning up transcription resources");
     this.isTranscribing = false;
     this.phoneNumber = ""; // Reset the phone number
+    
+    const records = predictionAccumulator.getRecords();
+    const accumulatedText = records
+      .map(r => r.text.trim())
+      .filter(t => t.length > 0)
+      .join('\n');
+    console.log("[generative.ts] Sending accumulated text to Azure:",accumulatedText);
+    await generateNotes(accumulatedText);
+  
+    predictionAccumulator.clear();
+    console.log('[generative.ts] Cleared prediction accumulator after call end');
 
     if (this.transcriber) {
       try {
