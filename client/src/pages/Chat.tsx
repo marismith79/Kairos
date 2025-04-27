@@ -12,6 +12,8 @@ interface ChatBubble {
   timestamp: string;
 }
 
+const companyNumbers: [string] = ["+16315134330"];
+
 export default function Chat() {
   const [messages, setMessages] = useState<ChatBubble[]>([]);
   const [currentMessage, setCurrentMessage] = useState<ChatBubble | null>(null);
@@ -21,14 +23,16 @@ export default function Chat() {
 
   useEffect(() => {
     socket.on("startTranscription", (data: ChatBubble) => {
-      setMessages(prev => [...prev, data]);
+      setMessages((prev) => [...prev, data]);
     });
 
     socket.on("interimTranscription", (data: ChatBubble) => {
       console.log("Received interim transcription:", data);
-      setMessages(prev => {
+      setMessages((prev) => {
         const newMessages = [...prev];
-        const index = newMessages.findIndex(msg => msg.bubbleId === data.bubbleId);
+        const index = newMessages.findIndex(
+          (msg) => msg.bubbleId === data.bubbleId
+        );
         if (index !== -1) {
           newMessages[index] = data;
         }
@@ -39,9 +43,11 @@ export default function Chat() {
 
     socket.on("finalTranscription", (data: ChatBubble) => {
       console.log("Received final transcription:", data);
-      setMessages(prev => {
+      setMessages((prev) => {
         const newMessages = [...prev];
-        const index = newMessages.findIndex(msg => msg.bubbleId === data.bubbleId);
+        const index = newMessages.findIndex(
+          (msg) => msg.bubbleId === data.bubbleId
+        );
         if (index !== -1) {
           newMessages[index] = data;
         }
@@ -52,12 +58,12 @@ export default function Chat() {
 
     socket.on("top3emotionsUpdate", (data: any[]) => {
       console.log("Received sentiment update:", data);
-      setPredictions(prev => [...prev, ...data]);
+      setPredictions((prev) => [...prev, ...data]);
     });
 
     socket.on("notesGenerated", (data: any) => {
       console.log("Received generated notes:", data);
-      setNotes(prev => [...prev, data]);
+      setNotes((prev) => [...prev, data]);
     });
 
     return () => {
@@ -72,7 +78,8 @@ export default function Chat() {
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
     }
   }, [messages]);
 
@@ -84,14 +91,25 @@ export default function Chat() {
         {messages.map((message: ChatBubble, index: number) => (
           <div
             key={message.bubbleId}
-            className={`chat-card ${message.isInterim ? 'interim' : 'final'} ${message.speakerId === 'Guest-1' ? 'left' : 'right'}`}
+            className={`chat-card ${message.isInterim ? "interim" : "final"} ${
+               companyNumbers.includes(message.speakerId) ? "left" : "right"
+            }`}
+            onClick={() => {
+              console.log("Message Details:", {
+                speakerId: message.speakerId,
+                isCompanyNumber: companyNumbers.includes(message.speakerId),
+                companyNumbers: companyNumbers,
+                isInterim: message.isInterim,
+                bubbleId: message.bubbleId,
+              });
+            }}
           >
             <div className="speaker-label">{message.speakerId}</div>
             <div className="bubble-content">
               <div className="text">{message.text}</div>
-              <hr style={{ border: '1px solid #cccccc', margin: '5px 0' }} />
-              <div style={{ fontSize: '0.9em', color: '#000000' }}>
-                Top emotions: {predictions[index]?.emotions?.join(', ')}
+              <hr style={{ border: "1px solid #cccccc", margin: "5px 0" }} />
+              <div style={{ fontSize: "0.9em", color: "#000000" }}>
+                Top emotions: {predictions[index]?.emotions?.join(", ")}
               </div>
               {message.isInterim && <div className="typing-indicator">...</div>}
               <div className="timestamp">
@@ -100,11 +118,6 @@ export default function Chat() {
             </div>
           </div>
         ))}
-        {currentMessage && (
-          <div className="chat-card interim">
-            {currentMessage.text}
-          </div>
-        )}
       </div>
 
       <div className="notes-container">
@@ -113,7 +126,7 @@ export default function Chat() {
           // split the raw note text into non‑empty lines
           const content: string = note.choices[0].message.content;
           const lines: string[] = content
-            .split('\n')
+            .split("\n")
             .map((l: string) => l.trim())
             .filter((l: string) => l.length > 0);
 
