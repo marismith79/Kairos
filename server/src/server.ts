@@ -13,6 +13,7 @@ const { VoiceResponse } = twilio.twiml;
 
 const MODERATOR = "+19497763549";
 import { initializeGenerative } from "./generative.js";
+import { predictionAccumulator } from "./tools/predictionAccumulator.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -170,7 +171,8 @@ app.post("/api/chat", (req: Request, res: Response) => {
 });
 
 humeSentiService.connect(process.env.HUME_API_KEY!, (predictions) => {
-  // console.log("Received predictions from Hume:", predictions);
+  console.log("Received predictions from Hume:", predictions);
+  predictionAccumulator.addPredictions(predictions);
 });
 
 // Adjust index.html path based on environment

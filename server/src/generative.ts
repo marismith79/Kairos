@@ -2,7 +2,7 @@ import { transcriptionEmitter } from './tools/emitter.js';
 import fetch from 'node-fetch';
 import { AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY } from './tools/config.js';
 import { Server as SocketIOServer } from "socket.io";
-import { isObjectBindingPattern } from 'typescript';
+import { predictionAccumulator } from './tools/predictionAccumulator.js';
 
 let io: SocketIOServer;
 
@@ -11,19 +11,22 @@ export function initializeGenerative(socketIO: SocketIOServer) {
   console.log("[generative.ts] Socket.IO initialized");
 }
 
-const promptTemplate = `Based on the following conversation, generate ONLY key information points that are explicitly mentioned or strongly implied. 
-Rules:
-1. Only include information that is clearly present in the conversation
-2. Do not make assumptions or inferences
-3. Keep each point brief and specific
-4. Do not include redundant information
-5. Do not include obvious or trivial observations
-6. Format as a simple bulleted list without sections or headers
-7. If no meaningful information is present, simply respond with "No key information points identified."
+const promptTemplate = `You are a note-taking assistant.  
+Based on the conversation below, identify the core events or facts, and for each one describe how the speaker felt at that moment.
 
-Conversation:\n\n`;
+Guidelines:
+1. Only record information explicitly stated or very strongly implied.  
+2. For each bullet, start with the event or fact, then add “— the speaker felt <emotion>.” based on the top three emotions you received with that text  
+3. Keep each bullet concise (1–2 sentences).  
+4. Do not add new details, assumptions, or trivial observations.  
+5. Do not repeat the same point twice.  
+6. If no meaningful information is present, reply:  
+   “No key events or emotions identified.”
+
+Conversation:
+\n\n`;
 const temperature = 0.7;
-const maxTokens = 200;
+const maxTokens = 400;
 
 let conversationHistory = "";
 const MAX_HISTORY_LENGTH = 5000;
@@ -77,10 +80,21 @@ async function generateNotes(transcript: string) {
 }
 
 // Listen for call ended events and generate notes
-console.log("[generative.ts] Setting up callEnded listener");
-transcriptionEmitter.on('callEnded', async (data: { completeTranscript: string }) => {
-  console.log("[generative.ts] Received callEnded event with complete transcript");
-  await generateNotes(data.completeTranscript);
+console.log("[generative.ts] Setting up callEnded listener (using accumulated text)");
+transcriptionEmitter.on('callEnded', async () => {
+  // Pull every snippet we’ve collected
+  const records = predictionAccumulator.getRecords();
+  // Build a single text blob
+  const accumulatedText = records
+    .map(r => r.text.trim())
+    .filter(t => t.length > 0)
+    .join('\n');
+
+  console.log("[generative.ts] Sending accumulated text to Azure:",accumulatedText);
+  await generateNotes(accumulatedText);
+
+  predictionAccumulator.clear();
+  console.log('[generative.ts] Cleared prediction accumulator after call end');
 });
 
 /**
