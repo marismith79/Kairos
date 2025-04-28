@@ -16,10 +16,10 @@ Based on the conversation below, identify the core events or facts, and for each
 
 Guidelines:
 1. Only record information explicitly stated or very strongly implied.  
-2. For each bullet, start with the event or fact, then add “— the speaker felt <emotion>.” based on the top three emotions you received with that text  
+2. For each bullet, start with the event or fact, and include somewhere in the response the most relevant emotion that the speaker felt based on the top three emotions from that text
 3. Keep each bullet concise (1-2 sentences).  
 4. Do not add new details, assumptions, or trivial observations.  
-5. Do not repeat the same point twice.  
+5. Do not repeat the same point twice.
 6. If no meaningful information is present, reply:  
    “No key events or emotions identified.”
 
@@ -27,9 +27,6 @@ Conversation:
 \n\n`;
 const temperature = 0.7;
 const maxTokens = 400;
-
-let conversationHistory = "";
-const MAX_HISTORY_LENGTH = 5000;
 
 /**
  * Sends the prompt to Azure OpenAI API using chat completions.
@@ -102,7 +99,6 @@ transcriptionEmitter.on('callEnded', async () => {
  */
 export function clearConversationHistory() {
   console.log("[clearConversationHistory] Clearing conversation history");
-  conversationHistory = "";
 }
 
 export { generateNotes };
