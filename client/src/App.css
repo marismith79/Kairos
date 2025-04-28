@@ -291,20 +291,6 @@ button:focus{
 
 }
 
-.message-container {
-  flex: 2; /* This makes it take up 2 parts of the available space */
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-height: 80vh;
-  overflow-y: auto;
-  padding: 10px;
-  margin-bottom: 10px;
-  background: white;
-  border-radius: 8px;
-  border-top: 1px solid transparent;  
-}
-
 /* Add this to your App.css */
 .glimmer-text {
   position: relative;
@@ -325,6 +311,21 @@ button:focus{
   -webkit-background-clip: text;
   background-clip: text;
   animation: shine 2.4s linear infinite;
+}
+
+.emotion-chip {
+  padding: 6px 10px;
+  font-size: 0.7rem;
+  color: rgb(44, 43, 43);
+  border-radius: 50px;
+  text-align: center;
+  min-width: 50px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  pointer-events: none; /* not clickable */
+  user-select: none;
 }
 
 @keyframes shine {

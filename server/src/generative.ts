@@ -17,7 +17,7 @@ Based on the conversation below, identify the core events or facts, and for each
 Guidelines:
 1. Only record information explicitly stated or very strongly implied.  
 2. For each bullet, start with the event or fact, then add “— the speaker felt <emotion>.” based on the top three emotions you received with that text  
-3. Keep each bullet concise (1–2 sentences).  
+3. Keep each bullet concise (1-2 sentences).  
 4. Do not add new details, assumptions, or trivial observations.  
 5. Do not repeat the same point twice.  
 6. If no meaningful information is present, reply:  
