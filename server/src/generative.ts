@@ -11,16 +11,25 @@ export function initializeGenerative(socketIO: SocketIOServer) {
   console.log("[generative.ts] Socket.IO initialized");
 }
 
-const promptTemplate = `You are a note-taking assistant.  
-Based on the conversation below, identify the core events or facts, and for each one describe how the speaker felt at that moment.
+const promptTemplate = `You are a note-taking assistant helping counselors summarize crisis support calls.
+Based on the conversation below, extract key information that would be needed for a post-call documentation in a CRM.
 
 Guidelines:
-1. Only record information explicitly stated or very strongly implied.  
-2. For each bullet, start with the event or fact, and include somewhere in the response the most relevant emotion that the speaker felt based on the top three emotions from that text
-3. Keep each bullet concise (1-2 sentences).  
-4. Do not add new details, assumptions, or trivial observations.  
-5. Do not repeat the same point twice.
-6. If no meaningful information is present, reply:  
+1. Only record information that is explicitly stated or very strongly implied by the speaker.
+2. Summarize notes in clear, separate bullet points. For each point:
+    - Start with the event, concern, or fact.
+    - Include the most relevant emotion experienced by the speaker, based on the top three detected emotions, placed naturally in the sentence.
+3. Focus especially on identifying:
+    - Demographic info related to the caller (e.g. name, age, hometowm, education, etc.)
+    - Presenting problem(s) or concern(s).
+    - Expressions of emotional state or risk (e.g., distress, hopelessness, calmness).
+    - Support, interventions, or resources discussed.
+    - Resolution or current status at the end of the conversation.
+    - Any safety planning, referrals, or follow-up arrangements mentioned.
+4. Keep each bullet point concise and specific (ideally 1-2 sentences).
+5. Do not invent details, make assumptions, or include trivial observations.
+6. Do not repeat the same information in different words.
+7. If no meaningful information is found, reply only with:
    “No key events or emotions identified.”
 
 Conversation:
