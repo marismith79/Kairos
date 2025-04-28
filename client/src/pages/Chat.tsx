@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import SentimentChart from "../components/SentimentChart";
+import { emotionColors } from "../components/ui/emotionColors";
+import EditableNote from "../components/ui/EditableNote";
 
 const socket = io("http://localhost:3000");
 
@@ -108,9 +110,17 @@ export default function Chat() {
             <div className="bubble-content">
               <div className="text">{message.text}</div>
               <hr style={{ border: "1px solid #cccccc", margin: "5px 0" }} />
-              <div style={{ fontSize: "0.9em", color: "#000000" }}>
-                Top emotions: {predictions[index]?.emotions?.join(", ")}
-              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "5px" }}>
+              {predictions[index]?.emotions?.map((emotion: string, idx: number) => (
+                <div
+                  key={idx}
+                  className="emotion-chip"
+                  style={{ backgroundColor: emotionColors[emotion.toLowerCase()] || "#ccc" }}
+                >
+                  {emotion}
+                </div>
+              ))}
+            </div>
               {message.isInterim && <div className="typing-indicator">...</div>}
               <div className="timestamp">
                 {new Date(message.timestamp).toLocaleTimeString()}
@@ -123,22 +133,13 @@ export default function Chat() {
       <div className="notes-container">
         <h3>Notes</h3>
         {notes.map((note: any, index: number) => {
-          // split the raw note text into non‑empty lines
           const content: string = note.choices[0].message.content;
-          const lines: string[] = content
-            .split("\n")
-            .map((l: string) => l.trim())
-            .filter((l: string) => l.length > 0);
-
           return (
-            <div key={index} className="note-card">
-              {lines.map((line: string, i: number) => (
-                <p key={i}>{line}</p>
-              ))}
-            </div>
+            <EditableNote key={index} initialContent={content} />
           );
         })}
       </div>
+
 
       <div className="sentiment-container">
         <h3>Sentiment</h3>
