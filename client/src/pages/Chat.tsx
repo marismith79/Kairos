@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import SentimentChart from "../components/SentimentChart";
 import { emotionColors } from "../components/ui/emotionColors";
+import EditableNote from "../components/ui/EditableNote";
 
 const socket = io("http://localhost:3000");
 
@@ -132,22 +133,13 @@ export default function Chat() {
       <div className="notes-container">
         <h3>Notes</h3>
         {notes.map((note: any, index: number) => {
-          // split the raw note text into non‑empty lines
           const content: string = note.choices[0].message.content;
-          const lines: string[] = content
-            .split("\n")
-            .map((l: string) => l.trim())
-            .filter((l: string) => l.length > 0);
-
           return (
-            <div key={index} className="note-card">
-              {lines.map((line: string, i: number) => (
-                <p key={i}>{line}</p>
-              ))}
-            </div>
+            <EditableNote key={index} initialContent={content} />
           );
         })}
       </div>
+
 
       <div className="sentiment-container">
         <h3>Sentiment</h3>
