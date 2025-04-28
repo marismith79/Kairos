@@ -92,9 +92,13 @@ transcriptionEmitter.on('callEnded', async () => {
   const records = predictionAccumulator.getRecords();
   // Build a single text blob
   const accumulatedText = records
-    .map(r => r.text.trim())
-    .filter(t => t.length > 0)
-    .join('\n');
+  .map(r => {
+    const cleanedText = r.text.trim();
+    const emotionNames = r.topEmotions.map(e => e.name).join(", ");
+    return `${cleanedText} (Top emotions: ${emotionNames})`;
+  })
+  .filter(t => t.length > 0)
+  .join('\n');
 
   console.log("[generative.ts] Sending accumulated text to Azure:",accumulatedText);
   await generateNotes(accumulatedText);
